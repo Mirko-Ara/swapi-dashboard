@@ -41,8 +41,8 @@ const fetchAllPeople = async (): Promise<Person[]> => {
     const allPeople: Person[] = []
     let url: string | null = "https://www.swapi.tech/api/people"
     let page: number = 1;
-
     const totalPages: number = 9;
+    const delayBetweenRequests = 1000;
 
     while (url) {
         console.log(`Fetching page ${page} of ${totalPages}: ${url}`)
@@ -53,13 +53,13 @@ const fetchAllPeople = async (): Promise<Person[]> => {
         const results = json.results || []
 
         for (const { url: detailUrl } of results) {
-            await sleep(100)
-            const personRes = await fetchWithRetry(detailUrl)
-            if (!personRes) continue
-
             try {
-                const personJson: SwapiDetailResponse = await personRes.json()
-                allPeople.push(personJson.result.properties)
+                const personRes = await fetchWithRetry(detailUrl);
+                if(personRes) {
+                    const personJson: SwapiDetailResponse = await personRes.json();
+                    allPeople.push(personJson.result.properties);
+                }
+                await sleep(delayBetweenRequests);
             } catch (err) {
                 console.error(`Error parsing JSON for ${detailUrl}: `, err)
             }
@@ -67,6 +67,7 @@ const fetchAllPeople = async (): Promise<Person[]> => {
 
         url = json.next;
         page++;
+        await sleep(delayBetweenRequests);
     }
 
     return allPeople
