@@ -3,7 +3,7 @@ import { ThemeSwitcher } from '@/providers/theme-switcher';
 import { Link, useRouter } from "@tanstack/react-router"
 import { Button } from "../ui/button"
 import { LayoutDashboard, Users, Settings, Menu, LogOut } from "lucide-react"
-import { useState } from "react"
+import {useEffect, useState} from "react"
 import { useAuth } from "@/providers/theme-hooks"
 import { LoaderSpinner } from "@/components/layout/loader-spinner";
 
@@ -14,6 +14,12 @@ export const Sidebar = () => {
     const { logout } = useAuth()
     const [ logoutRedirecting, setLogOutRedirecting] = useState<boolean>(false);
 
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }, [mobileToggle]);
     const handleLogout = () => {
         setLogOutRedirecting(true);
         setTimeout(async () => {

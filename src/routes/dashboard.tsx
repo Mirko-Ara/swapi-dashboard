@@ -14,10 +14,11 @@ const Dashboard = () => {
 
     const handleInvalidateCache = async (): Promise<void> => {
         queryClient.removeQueries({ queryKey: ["swapi-people"] });
+        localStorage.removeItem("swapi-people-data");
+        localStorage.removeItem("swapi-people-timestamp");
         console.clear();
         setCurrentPage(null);
         setFetchingMessage("Loading data...")
-
         await refetch();
     };
 

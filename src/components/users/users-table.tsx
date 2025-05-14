@@ -117,7 +117,8 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
             </div>
             <div className="flex items-center justify-between px-2">
                 <div className="text-sm text-muted-foreground">
-                    Showing {table.getRowModel().rows.length} of{' '}
+                    Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
+                    {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, data.length)} of{' '}
                     {data.length} results
                 </div>
                 <div className="flex items-center space-x-2">
