@@ -9,7 +9,6 @@ export function ProtectedRoute(Component: React.ComponentType) {
     return function WrappedComponent() {
         const { isAuthenticated } = useAuth()
         const navigate = useNavigate()
-
         useEffect(() => {
             const redirectToLogin = async () => {
                 if (!isAuthenticated) {

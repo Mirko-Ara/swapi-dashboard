@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import type { Person } from "@/types";
+import { toast } from 'sonner';
 
 interface SwapiListResponse {
     next: string | null
@@ -49,7 +50,7 @@ const fetchAllPeople = async (): Promise<Person[]> => {
                 return parsedData;
             }
         } catch(err) {
-            console.error('Error parsing cached data from localStorage: ', err);;
+            console.error('Error parsing cached data from localStorage: ', err);
         }
     }
     const allPeople: Person[] = []
@@ -57,11 +58,14 @@ const fetchAllPeople = async (): Promise<Person[]> => {
     let page: number = 1;
     const totalPages: number = 9;
     const delayBetweenRequests = 1000;
-
+    let failedCharacterCount: number = 0;
     while (url) {
         console.log(`Fetching page ${page} of ${totalPages}: ${url}`)
         const listResp = await fetchWithRetry(url)
-        if (!listResp) break
+        if (!listResp) {
+            toast.error(`Error loading data for page ${page} !`);
+            break;
+        }
 
         const json: SwapiListResponse = await listResp.json()
         const results = json.results || []
@@ -72,10 +76,13 @@ const fetchAllPeople = async (): Promise<Person[]> => {
                 if(personRes) {
                     const personJson: SwapiDetailResponse = await personRes.json();
                     allPeople.push(personJson.result.properties);
+                } else {
+                    failedCharacterCount++;
                 }
                 await sleep(delayBetweenRequests);
             } catch (err) {
-                console.error(`Error parsing JSON for ${detailUrl}: `, err)
+                console.error(`Error parsing JSON for ${detailUrl}: `, err);
+                failedCharacterCount++;
             }
         }
 
@@ -83,6 +90,11 @@ const fetchAllPeople = async (): Promise<Person[]> => {
         page++;
         await sleep(delayBetweenRequests);
     }
+    if(failedCharacterCount > 0){
+        toast.warning(`${failedCharacterCount} character${failedCharacterCount > 1 ? "(s)" : ""} failed to load.`);
+    }
+
+    toast.success("Data loaded successfully!");
     try {
         localStorage.setItem("swapi-people-data", JSON.stringify(allPeople));
         localStorage.setItem("swapi-people-timestamp", Date.now().toString());
