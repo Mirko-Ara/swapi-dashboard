@@ -58,7 +58,7 @@ const PieChartComponent = () => {
     }
 
     return (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={300} data-testid="pie-chart">
             <PieChart>
                 <Pie
                     data={pieData}

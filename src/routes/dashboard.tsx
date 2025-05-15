@@ -44,8 +44,8 @@ const Dashboard = () => {
                     <CityTime city="Tokyo" timeZone="Asia/Tokyo" />
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                    <Card className="col-span-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+                    <Card>
                         <CardHeader>
                             <CardTitle>Gender Distribution</CardTitle>
                         </CardHeader>
@@ -57,7 +57,7 @@ const Dashboard = () => {
                             )}
                         </CardContent>
                     </Card>
-                    <Card className="col-span-3">
+                    <Card>
                         <CardHeader>
                             <CardTitle>Character Mass Comparison</CardTitle>
                         </CardHeader>
