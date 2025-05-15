@@ -20,7 +20,7 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const fetchWithRetry = async (
     url: string,
     retries = 3,
-    delay = 1000
+    delay = 2000
 ): Promise<Response | null> => {
     for (let i = 0; i < retries; i++) {
         try {
@@ -100,11 +100,11 @@ const fetchAllPeople = async (): Promise<Person[]> => {
     // Caching layer
     const cachedData = localStorage.getItem("swapi-people-data");
     const cacheTimestamp = localStorage.getItem("swapi-people-timestamp");
-
+    const cacheDuration: number = 1000 * 60 * 60 * 2;
     if (
         cachedData &&
         cacheTimestamp &&
-        Date.now() - parseInt(cacheTimestamp, 10) < 1000 * 60 * 10
+        Date.now() - parseInt(cacheTimestamp, 10) < cacheDuration
     ) {
         try {
             console.log("Utilizing cached data from localStorage");
@@ -177,8 +177,8 @@ export function useSwapiPeople() {
     return useQuery<Person[]>({
         queryKey: ["swapi-people"],
         queryFn: fetchAllPeople,
-        staleTime: 1000 * 60 * 10,
-        gcTime: 1000 * 60 * 30,
+        staleTime: 1000 * 60 * 60 * 2,
+        gcTime: 1000 * 60 * 60 * 3,
         retry: 2,
         retryDelay: 1000,
     });

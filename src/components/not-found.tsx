@@ -17,7 +17,7 @@ export default function NotFound() {
             if(!triedToAccessProtectedRoute) {
                 setRedirecting(true);
                 try {
-                    await new Promise((resolve) => setTimeout(resolve, 800));
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
 
                     if (isAuthenticated) {
                         await navigate({to: "/dashboard"});

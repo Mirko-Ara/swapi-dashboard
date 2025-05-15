@@ -1,4 +1,5 @@
 import {
+    type FilterFn,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
@@ -22,6 +23,25 @@ import {
 } from '../ui/table'
 import { LogWatcher } from '@/components/layout/log-watcher';
 
+
+const globalFilterFn: FilterFn<Person> = (row, _columnId, filterValue) => {
+    const filter = String(filterValue).toLowerCase().trim();
+
+    const { name, gender, birth_year, height } = row.original;
+
+    const startsWith = (val: string | number | null | undefined) => {
+        if (val == null) return false;
+        return val.toString().toLowerCase().startsWith(filter);
+    };
+
+    return (
+        startsWith(name) ||
+        startsWith(gender) ||
+        startsWith(birth_year) ||
+        startsWith(height)
+    );
+};
+
 interface UsersTableProps {
     data: Person[]
     isLoading?: boolean
@@ -40,6 +60,7 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
+        globalFilterFn,
         initialState: {
             pagination: {
                 pageSize: 10,
@@ -67,12 +88,24 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                     value={globalFilter ?? ''}
                     onChange={(event) => {
                         const input = event.target.value;
-                        const filtered = input.charAt(0).toUpperCase() + input.slice(1).replace(/[^a-zA-Z]/g, '');
+                        const filtered = input.replace(/[^\w\s-/]/gi, '');
                         setGlobalFilter(filtered);
                     }}
                     className="max-w-sm"
                 />
             </div>
+            {globalFilter && (
+                <div className="mb-2 text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in">
+                    <span className={table.getFilteredRowModel().rows.length === 0 ? 'text-destructive' : ''}>
+                        {table.getFilteredRowModel().rows.length > 0
+                            ? `${table.getFilteredRowModel().rows.length} ${table.getFilteredRowModel().rows.length === 1 ? 'match' : 'matches'} found`
+                            : 'No results found.'}
+                     </span>
+                    <Button variant="ghost" size="sm" onClick={() => setGlobalFilter('')}>
+                        ✕ Clear filter
+                    </Button>
+                </div>
+            )}
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>

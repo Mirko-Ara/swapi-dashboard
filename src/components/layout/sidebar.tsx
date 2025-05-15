@@ -3,7 +3,7 @@ import { ThemeSwitcher } from '@/providers/theme-switcher';
 import { Link, useRouter } from "@tanstack/react-router"
 import { Button } from "../ui/button"
 import { LayoutDashboard, Users, Settings, Menu, LogOut } from "lucide-react"
-import {useEffect, useState} from "react"
+import { useEffect, useState, useRef } from "react"
 import { useAuth } from "@/providers/theme-hooks"
 import { LoaderSpinner } from "@/components/layout/loader-spinner";
 
@@ -14,12 +14,37 @@ export const Sidebar = () => {
     const { logout } = useAuth()
     const [ logoutRedirecting, setLogOutRedirecting] = useState<boolean>(false);
 
+    const sidebarRef = useRef<HTMLDivElement>(null);
+    const toggleButtonRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent | TouchEvent) {
+            const target = event.target as Node;
+
+            if (
+                sidebarRef.current && !sidebarRef.current.contains(target) &&
+                toggleButtonRef.current && !toggleButtonRef.current.contains(target)
+            ) {
+                if (mobileToggle) setMobileToggle(false);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+        };
+    }, [mobileToggle]);
+
     useEffect(() => {
         window.scrollTo({
             top: 0,
             behavior: "smooth"
         });
     }, [mobileToggle]);
+
     const handleLogout = () => {
         setLogOutRedirecting(true);
         setTimeout(async () => {
@@ -31,6 +56,7 @@ export const Sidebar = () => {
             }
         }, 900);
     }
+
     const toggleMobile = () => {
         setMobileToggle(!mobileToggle)
     }
@@ -46,11 +72,20 @@ export const Sidebar = () => {
 
     return (
         <>
-            <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50" onClick={toggleMobile}>
+            <Button
+                ref={toggleButtonRef}
+                variant="ghost"
+                size="icon"
+                className="fixed top-4 left-4 z-50"
+                onClick={toggleMobile}
+            >
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle Menu</span>
             </Button>
-            <div className={`${mobileToggle ? "block" : "hidden"} md:${mobileToggle ? "block" : "hidden"} ...`}>
+            <div
+                ref={sidebarRef}
+                className={`${mobileToggle ? "block" : "hidden"} md:${mobileToggle ? "block" : "hidden"} ...`}
+            >
                 <div className="flex h-full max-h-screen flex-col gap-2">
                     <div className="flex h-14 items-center border-b px-4 lg:h-[60px]">
                         <Link to="/dashboard" className="flex items-center justify-center gap-2 font-semibold w-full" onClick={() => setMobileToggle(false)}>

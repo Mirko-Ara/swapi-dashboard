@@ -16,8 +16,8 @@ const localStoragePersister = createSyncStoragePersister({
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 1000 * 60 * 10,
-            gcTime: 1000 * 60 * 30,
+            staleTime: 1000 * 60 * 60 * 2,
+            gcTime: 1000 * 60 * 60 * 3,
             retry: 2,
             retryDelay: 1000,
         }
@@ -28,7 +28,7 @@ if(typeof window !== 'undefined') {
     persistQueryClient({
         queryClient,
         persister: localStoragePersister,
-        maxAge: 1000 * 60 * 60 * 24,
+        maxAge: 1000 * 60 * 60 * 24 * 7,
         buster: '1.0.0'
         }
     )
