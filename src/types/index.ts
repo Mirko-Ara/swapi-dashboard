@@ -9,4 +9,5 @@ export interface Person {
     gender: string
     homeworld: string
     url: string
+    isFavorite?: boolean
 }

@@ -7,12 +7,13 @@ import {
     getSortedRowModel,
     type SortingState,
     useReactTable,
-} from '@tanstack/react-table'
-import { columns } from './columns'
-import type { Person } from '@/types'
-import { useState } from 'react'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
+} from '@tanstack/react-table';
+
+import { columns } from './columns';
+import type { Person } from '@/types';
+import { useState } from 'react';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import {
     Table,
     TableBody,
@@ -20,13 +21,11 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '../ui/table'
+} from '../ui/table';
 import { LogWatcher } from '@/components/layout/log-watcher';
-
 
 const globalFilterFn: FilterFn<Person> = (row, _columnId, filterValue) => {
     const filter = String(filterValue).toLowerCase().trim();
-
     const { name, gender, birth_year, height } = row.original;
 
     const startsWith = (val: string | number | null | undefined) => {
@@ -43,13 +42,13 @@ const globalFilterFn: FilterFn<Person> = (row, _columnId, filterValue) => {
 };
 
 interface UsersTableProps {
-    data: Person[]
-    isLoading?: boolean
+    data: Person[];
+    isLoading?: boolean;
 }
 
 export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
-    const [sorting, setSorting] = useState<SortingState>([])
-    const [globalFilter, setGlobalFilter] = useState('')
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [globalFilter, setGlobalFilter] = useState('');
 
     const table = useReactTable({
         data,
@@ -70,14 +69,14 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
             sorting,
             globalFilter,
         },
-    })
+    });
 
     if (isLoading) {
         return (
             <div className="space-y-4">
                 <LogWatcher className="h-[400px]" />
             </div>
-        )
+        );
     }
 
     return (
@@ -85,7 +84,7 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
             <div className="flex items-center py-4">
                 <Input
                     placeholder="Filter by name..."
-                    value={globalFilter ?? ''}
+                    value={globalFilter}
                     onChange={(event) => {
                         const input = event.target.value;
                         const filtered = input.replace(/[^\w\s-/]/gi, '');
@@ -94,18 +93,27 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                     className="max-w-sm"
                 />
             </div>
+
             {globalFilter && (
                 <div className="mb-2 text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in">
-                    <span className={table.getFilteredRowModel().rows.length === 0 ? 'text-destructive' : ''}>
-                        {table.getFilteredRowModel().rows.length > 0
-                            ? `${table.getFilteredRowModel().rows.length} ${table.getFilteredRowModel().rows.length === 1 ? 'match' : 'matches'} found`
-                            : 'No results found.'}
-                     </span>
+          <span
+              className={
+                  table.getFilteredRowModel().rows.length === 0 ? 'text-destructive' : ''
+              }
+          >
+            {table.getFilteredRowModel().rows.length > 0
+                ? `${table.getFilteredRowModel().rows.length} ${
+                    table.getFilteredRowModel().rows.length === 1 ? 'match' : 'matches'
+                } found`
+                : 'No results found.'}
+          </span>
+
                     <Button variant="ghost" size="sm" onClick={() => setGlobalFilter('')}>
                         ✕ Clear filter
                     </Button>
                 </div>
             )}
+
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -115,21 +123,19 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                                     <TableHead key={header.id}>
                                         {header.isPlaceholder
                                             ? null
-                                            : flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
-                                            )}
+                                            : flexRender(header.column.columnDef.header, header.getContext())}
                                     </TableHead>
                                 ))}
                             </TableRow>
                         ))}
                     </TableHeader>
+
                     <TableBody>
-                        {table.getRowModel().rows?.length ? (
+                        {table.getRowModel().rows.length ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
-                                    data-state={row.getIsSelected() && 'selected'}
+                                    data-state={row.getIsSelected() ? 'selected' : undefined}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
@@ -148,12 +154,18 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                     </TableBody>
                 </Table>
             </div>
+
             <div className="flex items-center justify-between px-2">
                 <div className="text-sm text-muted-foreground">
-                    Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
-                    {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, data.length)} of{' '}
-                    {data.length} results
+                    Showing{' '}
+                    {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
+                    {Math.min(
+                        (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                        data.length
+                    )}{' '}
+                    of {data.length} results
                 </div>
+
                 <div className="flex items-center space-x-2">
                     <Button
                         variant="outline"
@@ -174,5 +186,5 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};

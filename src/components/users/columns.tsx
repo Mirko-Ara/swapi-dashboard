@@ -18,5 +18,5 @@ export const columns: ColumnDef<Person>[] = [
     {
         accessorKey: 'height',
         header: 'Height (cm)',
-    }
+    },
 ];
