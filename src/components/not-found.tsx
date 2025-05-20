@@ -3,12 +3,13 @@ import {useLocation, useNavigate} from "@tanstack/react-router";
 import { useAuth } from "@/providers/theme-hooks";
 import {useEffect, useState} from "react";
 import {LoaderSpinner} from "@/components/layout/loader-spinner";
+import { useTranslation } from 'react-i18next';
 export default function NotFound() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
     const location = useLocation();
     const [ redirecting, setRedirecting] = useState<boolean>(false);
-
+    const { t } = useTranslation();
     const protectedRoutes = ["/dashboard", "/users", "/settings"];
     const triedToAccessProtectedRoute = protectedRoutes.some((route) => location.pathname.startsWith(route));
 
@@ -39,7 +40,7 @@ export default function NotFound() {
         return (
             <div className="flex flex-col items-center justify-center gap-4 min-h-screen -mt-20">
                 <LoaderSpinner className="w-10 h-10" />
-                <p className="text-base text-muted-foreground font-medium">Redirecting...</p>
+                <p className="text-base text-muted-foreground font-medium">{t("redirecting")}</p>
             </div>
         );
     }

@@ -8,7 +8,6 @@ import { router } from "@/router"
 import { ThemeProvider } from "./providers/theme-provider"
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-
 const localStoragePersister = createSyncStoragePersister({
     storage: window.localStorage,
     key: 'swapi-cache',

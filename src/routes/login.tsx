@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../components/ui/form"
+import { useTranslation } from 'react-i18next';
 
 const formSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -24,7 +25,8 @@ const Login = () => {
             email: "",
             password: "",
         },
-    })
+    });
+    const { t } = useTranslation();
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         console.log("Login attempt with:", values)
@@ -37,7 +39,7 @@ const Login = () => {
             <Card className="w-full max-w-md shadow-lg">
                 <CardHeader>
                     <CardTitle className="text-2xl">Login</CardTitle>
-                    <CardDescription>Enter your credentials to access the dashboard</CardDescription>
+                    <CardDescription>{t("enterYourCredentials")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
@@ -73,7 +75,7 @@ const Login = () => {
                                 )}
                             />
                             <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-                                Sign In
+                                {t("signIn")}
                             </Button>
                         </form>
                     </Form>

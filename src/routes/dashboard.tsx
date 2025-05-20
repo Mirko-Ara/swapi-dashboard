@@ -11,7 +11,7 @@ import { useLogWatcher } from '@/context/loader-watcher-context';
 import { LoaderSpinner } from "@/components/layout/loader-spinner";
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-
+import { useTranslation } from 'react-i18next';
 
 const CITY_CONFIG = [
     { city: "London", timeZone: "Europe/London", label: "London" },
@@ -36,21 +36,23 @@ const Dashboard = () => {
     const { isLoading, refetch } = useSwapiPeople();
     const queryClient = useQueryClient();
     const { setCurrentPage, setFetchingMessage } = useLogWatcher();
+    const { t } = useTranslation();
 
     const handleCacheAction = useCallback(async (): Promise<void> => {
         setIsProcessingCache(true);
         setFetchingMessage("Processing cache...");
 
         try {
-            queryClient.removeQueries({queryKey: ["swapi-people"]});
+            queryClient.removeQueries({ queryKey: ["swapi-people"] });
+            queryClient.removeQueries({ queryKey: ["favorites"] });
             localStorage.removeItem("swapi-people-data");
             localStorage.removeItem("swapi-people-timestamp");
+            localStorage.removeItem("favorites");
             console.clear();
             setCurrentPage(null);
             setFetchingMessage("Refreshing data...");
-            await refetch();
-
-            setFetchingMessage("Data loaded successfully !");
+            await queryClient.fetchQuery({ queryKey: ["swapi-people"] });
+            setFetchingMessage("Data loaded successfully!");
         } catch (error) {
             console.error("Error processing cache:", error);
             setFetchingMessage("Error processing cache");
@@ -69,7 +71,7 @@ const Dashboard = () => {
         <div className="flex flex-col">
             <div className="flex-1 space-y-4 p-8 pt-6">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-bold tracking-tight">SWAPI Dashboard</h2>
+                    <h2 className="text-3xl font-bold tracking-tight">{t('dashboardPageTitle')}</h2>
 
                     {hasCache && (
                         <div className="flex flex-col items-end gap-1">
@@ -79,13 +81,13 @@ const Dashboard = () => {
                                 className="cursor-pointer hover:scale-[0.98] active:scale-[0.96] transition-transform"
                                 disabled={isProcessingCache}
                             >
-                                Invalidate/Refresh Data Cache
+                                {t("invalidateDataCache")}
                                 {isProcessingCache && <LoaderSpinner size="sm" className="ml-2" />}
                             </Button>
 
                             {formattedLastUpdated && (
                                 <p className="text-sm text-muted-foreground">
-                                    Last Update: {formattedLastUpdated}
+                                    {`${t("lastUpdate")} ${formattedLastUpdated}`}
                                 </p>
                             )}
                         </div>
@@ -104,7 +106,7 @@ const Dashboard = () => {
                 <div className="grid gap-4 md:grid-cols-2">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Gender Distribution</CardTitle>
+                            <CardTitle>{t("genderDistribution")}</CardTitle>
                         </CardHeader>
                         <CardContent className="pl-2">
                             {isLoading ? (
@@ -117,7 +119,7 @@ const Dashboard = () => {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Character Mass Comparison</CardTitle>
+                            <CardTitle>{t("characterMassComparison")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             {isLoading ? (

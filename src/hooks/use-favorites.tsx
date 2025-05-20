@@ -1,21 +1,55 @@
-import { useCallback, useMemo, useState } from "react";
-// mi piacerebbe implementare le logiche dei favorites per andare a selezionare i preferiti nei characters in users
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+const FAVORITES_QUERY_KEY = ['favorites'];
+
 export function useFavorites() {
-    const [favorites, setFavorites] = useState<Set<string>>(new Set());
+    const queryClient = useQueryClient();
 
-    const toggleFavorite = useCallback((id: string) => {
-        setFavorites(prev => {
-            const updated = new Set(prev);
-            if (updated.has(id)) {
-                updated.delete(id);
-            } else {
-                updated.add(id);
+    const { data: favorites = {} } = useQuery<Record<string, boolean>>({
+        queryKey: FAVORITES_QUERY_KEY,
+        queryFn: async () => {
+            const stored = localStorage.getItem('favorites');
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch (e) {
+                    console.error("Error parsing favorites from localStorage", e);
+                }
             }
-            return new Set(updated);
-        });
-    }, []);
+            return {};
+        },
+        staleTime: Infinity,
+        gcTime: Infinity,
+    });
 
-    const favoritesArray = useMemo(() => Array.from(favorites), [favorites]);
+    const mutation = useMutation({
+        mutationFn: async (newFavorites: Record<string, boolean>) => {
+            localStorage.setItem('favorites', JSON.stringify(newFavorites));
+            return newFavorites;
+        },
+        onSuccess: (data) => {
+            queryClient.setQueryData(FAVORITES_QUERY_KEY, data);
+        }
+    });
 
-    return { favorites, favoritesArray, toggleFavorite };
+    const toggleFavorite = (id: string) => {
+        const updated = { ...favorites };
+        if (updated[id]) {
+            delete updated[id];
+        } else {
+            updated[id] = true;
+        }
+        mutation.mutate(updated);
+    };
+    const clearAll = () => {
+        mutation.mutate({});
+    };
+    const favoritesArray = Object.keys(favorites);
+
+    return {
+        favorites,
+        favoritesArray,
+        toggleFavorite,
+        clearAll
+    };
 }

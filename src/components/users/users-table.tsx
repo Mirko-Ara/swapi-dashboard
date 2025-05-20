@@ -8,7 +8,6 @@ import {
     type SortingState,
     useReactTable,
 } from '@tanstack/react-table';
-
 import { columns } from './columns';
 import type { Person } from '@/types';
 import { useState } from 'react';
@@ -23,6 +22,7 @@ import {
     TableRow,
 } from '../ui/table';
 import { LogWatcher } from '@/components/layout/log-watcher';
+import { useTranslation } from 'react-i18next';
 
 const globalFilterFn: FilterFn<Person> = (row, _columnId, filterValue) => {
     const filter = String(filterValue).toLowerCase().trim();
@@ -49,6 +49,7 @@ interface UsersTableProps {
 export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
+    const { t } = useTranslation();
 
     const table = useReactTable({
         data,
@@ -80,109 +81,111 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
     }
 
     return (
-        <div className="w-full space-y-4">
-            <div className="flex items-center py-4">
-                <Input
-                    placeholder="Filter by name..."
-                    value={globalFilter}
-                    onChange={(event) => {
-                        const input = event.target.value;
-                        const filtered = input.replace(/[^\w\s-/]/gi, '');
-                        setGlobalFilter(filtered);
-                    }}
-                    className="max-w-sm"
-                />
-            </div>
-
-            {globalFilter && (
-                <div className="mb-2 text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in">
-          <span
-              className={
-                  table.getFilteredRowModel().rows.length === 0 ? 'text-destructive' : ''
-              }
-          >
-            {table.getFilteredRowModel().rows.length > 0
-                ? `${table.getFilteredRowModel().rows.length} ${
-                    table.getFilteredRowModel().rows.length === 1 ? 'match' : 'matches'
-                } found`
-                : 'No results found.'}
-          </span>
-
-                    <Button variant="ghost" size="sm" onClick={() => setGlobalFilter('')}>
-                        ✕ Clear filter
-                    </Button>
+        <div className="flex flex-col lg:flex-row gap-6">
+            <div className="w-full space-y-4">
+                <div className="flex items-center py-4">
+                    <Input
+                        placeholder={t('filterPlaceholder')}
+                        value={globalFilter}
+                        onChange={(event) => {
+                            const input = event.target.value;
+                            const filtered = input.replace(/[^\w\s-/]/gi, '');
+                            setGlobalFilter(filtered);
+                        }}
+                        className="max-w-sm"
+                    />
                 </div>
-            )}
 
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(header.column.columnDef.header, header.getContext())}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
+                {globalFilter && (
+                    <div className="mb-2 text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in">
+              <span
+                  className={
+                      table.getFilteredRowModel().rows.length === 0 ? 'text-destructive' : ''
+                  }
+              >
+                {table.getFilteredRowModel().rows.length > 0
+                ? t('matchesFound', { count: table.getFilteredRowModel().rows.length })
+                : t('noResultsFound')}
+              </span>
 
-                    <TableBody>
-                        {table.getRowModel().rows.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() ? 'selected' : undefined}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
+                        <Button className="cursor-pointer" variant="ghost" size="sm" onClick={() => setGlobalFilter('')}>
+                            {t("clearFilter")}
+                        </Button>
+                    </div>
+                )}
+
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id}>
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(header.column.columnDef.header, header.getContext())}
+                                        </TableHead>
                                     ))}
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No results found.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                            ))}
+                        </TableHeader>
 
-            <div className="flex items-center justify-between px-2">
-                <div className="text-sm text-muted-foreground">
-                    Showing{' '}
-                    {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
-                    {Math.min(
-                        (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-                        data.length
-                    )}{' '}
-                    of {data.length} results
+                        <TableBody>
+                            {table.getRowModel().rows.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() ? 'selected' : undefined}
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id}>
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                                        {t("noResultsFound")}
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                    >
-                        Previous
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                    >
-                        Next
-                    </Button>
+                <div className="flex items-center justify-between px-2">
+                    <div className="text-sm text-muted-foreground">
+                        {t("pageInfo", {
+                            current: ` ${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${Math.min(
+                                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                                data.length
+                            )}`,
+                            total: data.length,
+                        })}
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            variant="outline"
+                            className="cursor-pointer"
+                            size="sm"
+                            onClick={() => table.previousPage()}
+                            disabled={!table.getCanPreviousPage()}
+                        >
+                            {t("previous")}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer"
+                            onClick={() => table.nextPage()}
+                            disabled={!table.getCanNextPage()}
+                        >
+                            {t("next")}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
