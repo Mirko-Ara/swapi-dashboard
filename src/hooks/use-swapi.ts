@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Person } from "@/types";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
 interface SwapiListResponse {
     count: number;
@@ -88,7 +89,9 @@ const fetchPeopleDetailsBatch = async (
 
     if (failedCount.count > 0) {
         toast.warning(
-            `${failedCount.count} character${failedCount.count > 1 ? "s" : ""} failed to load.`
+            i18n.t("failedCharactersCount", {
+                count: failedCount.count,
+            })
         );
     }
 
@@ -138,12 +141,16 @@ const fetchAllPeople = async (): Promise<Person[]> => {
     };
     const totalPages = await totalPagesFetch();
     while (url !== null) {
-        console.log(`Fetching page ${page} of ${totalPages !== null ? totalPages : "9"} : ${url}`);
-        toast(`Fetching page ${page} of ${totalPages !== null ? totalPages : "9"} ...`);
+        const pageInfo = `SWAPI_FETCH_PAGE:${page}:${totalPages !== null ? totalPages : "9"}`;
+        console.log(pageInfo, url);
+        toast(i18n.t("fetchingPage", {
+            page: page,
+            total: totalPages !== null ? totalPages : "9",
+        }));
 
         const listResp = await fetchWithRetry(url);
         if (!listResp) {
-            toast.error(`Error loading data for page ${page}!`);
+            toast.error(i18n.t("errorLoadingDataForPage", { page: page }));
             break;
         }
 
@@ -161,7 +168,7 @@ const fetchAllPeople = async (): Promise<Person[]> => {
         if (url !== null) await sleep(delayBetweenPages);
     }
 
-    toast.success("Data loaded successfully!");
+    toast.success(i18n.t("dataLoadedSuccessfully"));
 
     try {
         localStorage.setItem("swapi-people-data", JSON.stringify(allPeople));

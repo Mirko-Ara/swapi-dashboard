@@ -139,7 +139,9 @@ const Settings = () => {
                                                                 {...field}
                                                             />
                                                         </FormControl>
-                                                        <FormMessage className="text-red-500" />
+                                                        <FormMessage className="text-red-500">
+                                                            {profileForm.formState.errors.firstName?.message}
+                                                        </FormMessage>
                                                     </FormItem>
                                                 )}
                                             />
@@ -155,7 +157,9 @@ const Settings = () => {
                                                                 {...field}
                                                             />
                                                         </FormControl>
-                                                        <FormMessage className="text-red-500" />
+                                                        <FormMessage className="text-red-500" >
+                                                            {profileForm.formState.errors.lastName?.message}
+                                                        </FormMessage>
                                                     </FormItem>
                                                 )}
                                             />
@@ -173,7 +177,9 @@ const Settings = () => {
                                                             {...field}
                                                         />
                                                     </FormControl>
-                                                    <FormMessage className="text-red-500" />
+                                                    <FormMessage className="text-red-500" >
+                                                        {profileForm.formState.errors.email?.message}
+                                                    </FormMessage>
                                                 </FormItem>
                                             )}
                                         />
@@ -206,7 +212,9 @@ const Settings = () => {
                                                     <FormControl>
                                                         <Input type="password" {...field} />
                                                     </FormControl>
-                                                    <FormMessage className="text-red-500" />
+                                                    <FormMessage className="text-red-500" >
+                                                        {accountForm.formState.errors.currentPassword?.message}
+                                                    </FormMessage>
                                                 </FormItem>
                                             )}
                                         />
@@ -220,7 +228,9 @@ const Settings = () => {
                                                         <FormControl>
                                                             <Input type="password" {...field} />
                                                         </FormControl>
-                                                        <FormMessage className="text-red-500" />
+                                                        <FormMessage className="text-red-500">
+                                                            {accountForm.formState.errors.newPassword?.message}
+                                                        </FormMessage>
                                                     </FormItem>
                                                 )}
                                             />
@@ -233,7 +243,9 @@ const Settings = () => {
                                                         <FormControl>
                                                             <Input type="password" {...field} />
                                                         </FormControl>
-                                                        <FormMessage className="text-red-500" />
+                                                        <FormMessage className="text-red-500">
+                                                            {accountForm.formState.errors.confirmPassword?.message}
+                                                        </FormMessage>
                                                     </FormItem>
                                                 )}
                                             />

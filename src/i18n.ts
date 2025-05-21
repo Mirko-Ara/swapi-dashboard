@@ -5,6 +5,13 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            ailedCharactersCount_one: "{{count}} character failed to load.",
+            failedCharactersCount_other: "{{count}} characters failed to load.",
+            errorLoadingDataForPage: "Error loading data for page {{page}}!",
+            dataLoadedSuccessfully: 'Data loaded successfully!',
+            loadingData: 'Loading data...',
+            fetchingPageLog: 'Fetching page',
+            fetchingPage: 'Fetching page {{page}} of {{total}} ...',
             generalFilter: 'General Filter...',
             pageInfo: 'Showing {{current}} of {{total}} results',
             allCharacters: 'All Characters',
@@ -18,7 +25,6 @@ const resources = {
             removeFromFavorites: 'Remove from favorites',
             addToFavorites: 'Add to favorites',
             lastUpdate: "Last Update:",
-            fetchingPage: 'Fetching page {{page}} of {{total}} ...',
             invalidateDataCache: "Invalidate/Refresh Data Cache",
             redirecting: 'Redirecting...',
             characterMassComparison: "Character Mass Comparison",
@@ -75,6 +81,13 @@ const resources = {
     },
     it: {
         translation: {
+            failedCharactersCount_one: "{{count}} personaggio non è stato caricato.",
+            failedCharactersCount_other: "{{count}} personaggi non sono stati caricati.",
+            errorLoadingDataForPage: "Errore durante il caricamento dei dati per la pagina {{page}}!",
+            dataLoadedSuccessfully: 'Dati caricati con successo!',
+            loadingData: 'Caricamento dati in corso...',
+            fetchingPageLog: 'Caricamento della pagina',
+            fetchingPage: 'Caricamento della pagina {{page}} di {{total}} ...',
             generalFilter: 'Filtro generale...',
             pageInfo: 'Mostrando {{current}} di {{total}} risultati',
             allCharacters: 'Tutti i personaggi',
@@ -88,7 +101,6 @@ const resources = {
             removeFromFavorites: 'Rimuovi dai preferiti',
             addToFavorites: 'Aggiungi ai preferiti',
             lastUpdate: "Ultimo aggiornamento:",
-            fetchingPage: 'Caricamento della pagina {{page}} di {{total}} ...',
             invalidateDataCache: "Invalida/Aggiorna Cache Dati",
             redirecting: 'Reindirizzamento...',
             characterMassComparison: "Confronto tra le masse dei personaggi",
@@ -145,6 +157,13 @@ const resources = {
     },
     es: {
         translation: {
+            failedCharactersCount_one: "{{count}} personaje no se pudo cargar.",
+            failedCharactersCount_other: "{{count}} personajes no se pudieron cargar.",
+            errorLoadingDataForPage: "Error al cargar los datos para la página {{page}}!",
+            dataLoadedSuccessfully: 'Datos cargados con éxito!',
+            loadingData: 'Cargando datos...',
+            fetchingPageLog: 'Cargando la página',
+            fetchingPage: 'Cargando la página {{page}} de {{total}} ...',
             generalFilter: 'Filtro general...',
             pageInfo: 'Mostrando {{current}} de {{total}} resultados',
             allCharacters: 'Todos los personajes',
@@ -158,7 +177,6 @@ const resources = {
             removeFromFavorites: 'Eliminar de favoritos',
             addToFavorites: 'Agregar a favoritos',
             lastUpdate: "Última actualización:",
-            fetchingPage: 'Cargando la página {{page}} de {{total}} ...',
             invalidateDataCache: "Invalidar/Actualizar Caché de Datos",
             redirecting: 'Redireccionando...',
             characterMassComparison: "Comparación de las masas de los personajes",
