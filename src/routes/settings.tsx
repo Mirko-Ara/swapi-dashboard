@@ -69,7 +69,14 @@ const Settings = () => {
     const handleUpdatePassword = (values: z.infer<typeof accountFormSchema>) => {
         setIsLoading(true);
         console.log("Password updated:", values);
-        setTimeout(() => setIsLoading(false), 800);
+        setTimeout(() => {
+            accountForm.reset({
+                currentPassword: "",
+                newPassword: "",
+                confirmPassword: ""
+            });
+            setIsLoading(false);
+        }, 800);
     };
 
     const handleSaveAppearance = () => {
@@ -90,22 +97,22 @@ const Settings = () => {
                 </div>
 
                 <Tabs defaultValue="profile" className="space-y-6">
-                    <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0">
+                    <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0 flex">
                         <TabsTrigger
                             value="profile"
-                            className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current data-[state=active]:font-medium px-4 pb-3 pt-2 -mb-px"
+                            className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current data-[state=active]:font-medium px-4 pb-3 pt-2 -mb-px flex-1 text-center"
                         >
                             {t("profile")}
                         </TabsTrigger>
                         <TabsTrigger
                             value="account"
-                            className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current data-[state=active]:font-medium px-4 pb-3 pt-2 -mb-px"
+                            className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current data-[state=active]:font-medium px-4 pb-3 pt-2 -mb-px flex-1 text-center"
                         >
                             {t("account")}
                         </TabsTrigger>
                         <TabsTrigger
                             value="appearance"
-                            className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current data-[state=active]:font-medium px-4 pb-3 pt-2 -mb-px"
+                            className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current data-[state=active]:font-medium px-4 pb-3 pt-2 -mb-px flex-1 text-center"
                         >
                             {t("appearance")}
                         </TabsTrigger>
@@ -187,8 +194,22 @@ const Settings = () => {
                                             />
                                         </div>
                                     </CardContent>
-                                    <CardFooter className="flex justify-end border-t pt-4">
-                                        <Button className="cursor-pointer" type="submit" disabled={isLoading}>
+                                    <CardFooter className="flex flex-wrap gap-2 justify-center sm:justify-end border-t pt-4">
+                                        <Button
+                                            variant="outline"
+                                            className="cursor-pointer mr-0 sm:mr-2 w-full sm:w-auto"
+                                            type="button"
+                                            onClick={() => {
+                                                profileForm.reset({
+                                                    firstName: "",
+                                                    lastName: "",
+                                                    email: ""
+                                                });
+                                            }}
+                                        >
+                                            {t("cancel")}
+                                        </Button>
+                                        <Button className="cursor-pointer w-full sm:w-auto" type="submit" disabled={isLoading}>
                                             {isLoading ? t("saving") : t("saveChanges")}
                                         </Button>
                                     </CardFooter>
@@ -213,7 +234,7 @@ const Settings = () => {
                                                 <FormItem>
                                                     <FormLabel>{t("currentPassword")}</FormLabel>
                                                     <FormControl>
-                                                        <Input type="password" {...field} />
+                                                        <Input type="password"  autoComplete="new-password" {...field}/>
                                                     </FormControl>
                                                     <FormMessage className="text-red-500" >
                                                         {accountForm.formState.errors.currentPassword?.message}
@@ -229,7 +250,7 @@ const Settings = () => {
                                                     <FormItem>
                                                         <FormLabel>{t("newPassword")}</FormLabel>
                                                         <FormControl>
-                                                            <Input type="password" {...field} />
+                                                            <Input type="password" autoComplete="new-password"{...field} />
                                                         </FormControl>
                                                         <FormMessage className="text-red-500">
                                                             {accountForm.formState.errors.newPassword?.message}
@@ -244,7 +265,7 @@ const Settings = () => {
                                                     <FormItem>
                                                         <FormLabel>{t("confirmPassword")}</FormLabel>
                                                         <FormControl>
-                                                            <Input type="password" {...field} />
+                                                            <Input type="password" autoComplete="new-password"{...field} />
                                                         </FormControl>
                                                         <FormMessage className="text-red-500">
                                                             {accountForm.formState.errors.confirmPassword?.message}
@@ -278,6 +299,13 @@ const Settings = () => {
                                             variant="outline"
                                             className="cursor-pointer mr-0 sm:mr-2 w-full sm:w-auto"
                                             type="button"
+                                            onClick={() => {
+                                                accountForm.reset({
+                                                    currentPassword: "",
+                                                    newPassword: "",
+                                                    confirmPassword: ""
+                                                });
+                                            }}
                                         >
                                             {t("cancel")}
                                         </Button>

@@ -5,6 +5,10 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            mass: 'Mass (kg)',
+            noMassDataAvailable: 'No mass data available',
+            loadingChartData: 'Loading chart data...',
+            noGenderDataAvailable: 'No gender data available',
             loggingIn: 'Logging in...',
             loginFailed: 'Login failed. Please check your credentials.',
             loggedIn: 'Logged in successfully!',
@@ -28,7 +32,7 @@ const resources = {
             languageIt: 'italian',
             languageEs: 'spanish',
             languageEn: 'english',
-            unknown: "Unknown",
+            unknown: "unknown",
             noFavorites: "No favorites",
             clearAll: '✕ Clear all',
             favorites: 'Favorites',
@@ -91,6 +95,10 @@ const resources = {
     },
     it: {
         translation: {
+            mass: 'Massa (kg)',
+            noMassDataAvailable: 'Nessun dato di massa disponibile',
+            noGenderDataAvailable: 'Non sono disponibili dati di genere',
+            loadingChartData: 'Caricamento dati del grafico...',
             loggingIn: 'Accesso in corso...',
             loggedIn: 'Accesso effettuato con successo!',
             loginFailed: 'Accesso fallito. Controlla le tue credenziali.',
@@ -114,7 +122,7 @@ const resources = {
             languageIt: 'italiano',
             languageEs: 'spagnolo',
             languageEn: 'inglese',
-            unknown: "Sconosciuto",
+            unknown: "sconosciuto",
             noFavorites: "Nessun preferito",
             clearAll: '✕ Svuota tutto',
             favorites: 'Preferiti',
@@ -177,6 +185,10 @@ const resources = {
     },
     es: {
         translation: {
+            mass: 'Masa (kg)',
+            noMassDataAvailable: 'No hay datos de masa disponibles',
+            noGenderDataAvailable: 'No hay datos de género disponibles',
+            loadingChartData: 'Cargando datos del gráfico...',
             loggingIn: 'Iniciando sesión...',
             loggedIn: '¡Sesión iniciada con éxito!',
             loginFailed: 'Error al iniciar sesión. Por favor, comprueba tus credenciales.',
@@ -200,7 +212,7 @@ const resources = {
             languageIt: 'italiano',
             languageEs: 'español',
             languageEn: 'inglés',
-            unknown: "Desconocido",
+            unknown: "desconocido",
             noFavorites: "No hay favoritos",
             clearAll: '✕ Limpiar todo',
             favorites: 'Favoritos',

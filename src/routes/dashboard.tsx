@@ -69,16 +69,16 @@ const Dashboard = () => {
 
     return (
         <div className="flex flex-col">
-            <div className="flex-1 space-y-4 p-8 pt-6">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-bold tracking-tight">{t('dashboardPageTitle')}</h2>
+            <div className="flex-1 space-y-4 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center sm:text-left">{t('dashboardPageTitle')}</h2>
 
                     {hasCache && (
-                        <div className="flex flex-col items-end gap-1">
+                        <div className="flex flex-col items-center sm:items-end gap-2">
                             <Button
                                 variant="outline"
                                 onClick={handleCacheAction}
-                                className="cursor-pointer hover:scale-[0.98] active:scale-[0.96] transition-transform"
+                                className="cursor-pointer hover:scale-[0.98] active:scale-[0.96] transition-transform text-sm sm:text-base"
                                 disabled={isProcessingCache}
                             >
                                 {t("invalidateDataCache")}
@@ -86,7 +86,7 @@ const Dashboard = () => {
                             </Button>
 
                             {formattedLastUpdated && (
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
                                     {`${t("lastUpdate")} ${formattedLastUpdated}`}
                                 </p>
                             )}
@@ -94,7 +94,7 @@ const Dashboard = () => {
                     )}
                 </div>
 
-                <div className={`grid gap-4 ${gridColsClass}`}>
+                <div className={`grid gap-2 sm:gap-4 ${gridColsClass} sm:grid-cols-2`}>
                     {CITY_CONFIG.map(({ city, timeZone, label }) => (
                         <CityTime
                             key={city}
@@ -103,29 +103,33 @@ const Dashboard = () => {
                         />
                     ))}
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2 sm:gap-4 sm:grid-cols-1 md:grid-cols-2">
                     <Card>
-                        <CardHeader>
-                            <CardTitle>{t("genderDistribution")}</CardTitle>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-sm sm:text-base">{t("genderDistribution")}</CardTitle>
                         </CardHeader>
-                        <CardContent className="pl-2">
+                        <CardContent className="p-2 sm:pl-2">
                             {isLoading ? (
-                                <LogWatcher className="h-[300px]" />
+                                <LogWatcher className="h-[200px] sm:h-[300px]" />
                             ) : (
-                                <PieChartComponent />
+                                <div className="w-full overflow-hidden -mt-15 -ml-0.5">
+                                    <PieChartComponent />
+                                </div>
                             )}
                         </CardContent>
                     </Card>
 
                     <Card>
-                        <CardHeader>
-                            <CardTitle>{t("characterMassComparison")}</CardTitle>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-sm sm:text-base">{t("characterMassComparison")}</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-2 sm:p-6">
                             {isLoading ? (
-                                <LogWatcher className="h-[300px]" />
+                                <LogWatcher className="h-[200px] sm:h-[300px]" />
                             ) : (
-                                <BarChartComponent />
+                                <div className="w-full overflow-hidden">
+                                    <BarChartComponent />
+                                </div>
                             )}
                         </CardContent>
                     </Card>

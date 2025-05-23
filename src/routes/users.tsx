@@ -48,21 +48,21 @@ const Users = () => {
     }
     return (
         <div className="flex flex-col p-8 pt-6 space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-bold tracking-tight">{t('usersPageTitle')}</h2>
+            <div className="flex justify-center items-center">
+                <h2 className="text-3xl font-bold tracking-tight text-center">{t('usersPageTitle')}</h2>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0">
+                <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0 flex flex-wrap sm:flex-nowrap">
                     <TabsTrigger
                         value="all"
-                        className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current px-4 pb-3 pt-2 -mb-px"
+                        className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current px-4 pb-3 pt-2 -mb-px text-sm sm:text-base whitespace-nowrap sm:flex-none flex-1"
                     >
                         {t("allCharacters")}
                     </TabsTrigger>
                     <TabsTrigger
                         value="favorites"
-                        className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current px-4 pb-3 pt-2 -mb-px"
+                        className="cursor-pointer rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-[0_1px_0_0] data-[state=active]:shadow-current px-4 pb-3 pt-2 -mb-px text-sm sm:text-base whitespace-nowrap sm:flex-none flex-1"
                     >
                         {t("favorites")}
                     </TabsTrigger>
@@ -100,14 +100,14 @@ const Users = () => {
 
                                     {filterText && (
                                         <div
-                                            className="mb-2 text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in">
+                                            className="mb-2 text-xs sm:text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in truncate">
                                             <span className={favoriteUsers.length === 0 ? 'text-destructive' : ''}>
                                                 {favoriteUsers.length > 0
                                                     ? t('matchesFound', {count: favoriteUsers.length})
                                                     : t('noResultsFound')}
                                             </span>
 
-                                            <Button className="cursor-pointer" variant="ghost" size="sm"
+                                            <Button className="cursor-pointer text-xs sm:text-sm" variant="ghost" size="sm"
                                                     onClick={() => setFilterText('')}>
                                                 {t("clearFilter")}
                                             </Button>
@@ -126,9 +126,9 @@ const Users = () => {
                                             </CardTitle>
                                             {favoritesArray.length > 0 && (
                                                 <Button
-                                                    variant="outline"
+                                                    variant="ghost"
                                                     size="sm"
-                                                    className="-mt-3 cursor-pointer h-8 hover:bg-destructive/10 hover:text-destructive"
+                                                    className="border-none cursor-pointer h-8 -mr-3 -mt-4 px-2 hover:bg-destructive/10 hover:text-destructive transition-all text-xs sm:text-sm sm:px-4"
                                                     onClick={clearAll}
                                                 >
                                                     {t('clearAll')}

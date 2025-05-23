@@ -88,7 +88,7 @@ const Login = () => {
                                     <FormItem>
                                         <FormLabel>Password</FormLabel>
                                         <FormControl>
-                                            <Input type="password" placeholder="••••••••" {...field} />
+                                            <Input type="password" autoComplete="new-password" placeholder="••••••••" {...field} />
                                         </FormControl>
                                         <FormMessage className="text-red-500">
                                             {form.formState.errors.password?.message}

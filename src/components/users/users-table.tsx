@@ -155,8 +155,8 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                     </Table>
                 </div>
 
-                <div className="flex items-center justify-between px-2">
-                    <div className="text-sm text-muted-foreground">
+                <div className="flex flex-col items-center sm:flex-row sm:justify-between px-2">
+                    <div className="text-sm text-muted-foreground mb-4 sm:mb-0">
                         {t("pageInfo", {
                             current: ` ${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${Math.min(
                                 (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
@@ -166,10 +166,10 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                         })}
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-row space-x-2">
                         <Button
-                            variant="outline"
-                            className="cursor-pointer"
+                            variant="ghost"
+                            className="cursor-pointer border-none text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
                             size="sm"
                             onClick={() => table.previousPage()}
                             disabled={!table.getCanPreviousPage()}
@@ -177,9 +177,9 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                             {t("previous")}
                         </Button>
                         <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            className="cursor-pointer"
+                            className="cursor-pointer border-none text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
                             onClick={() => table.nextPage()}
                             disabled={!table.getCanNextPage()}
                         >
