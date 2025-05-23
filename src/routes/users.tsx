@@ -1,30 +1,30 @@
-import { useSwapiPeople } from '../hooks/use-swapi';
-import { UsersTable } from '../components/users/users-table';
-import { LogWatcher } from '@/components/layout/log-watcher';
-import { useTranslation } from 'react-i18next';
-import { useState, useMemo } from "react";
-import { useFavorites } from "@/hooks/use-favorites";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import {useSwapiPeople} from '../hooks/use-swapi';
+import {UsersTable} from '../components/users/users-table';
+import {LogWatcher} from '@/components/layout/log-watcher';
+import {useTranslation} from 'react-i18next';
+import {useState, useMemo} from "react";
+import {useFavorites} from "@/hooks/use-favorites";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@radix-ui/react-tabs";
+import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {ScrollArea} from "@radix-ui/react-scroll-area";
+import {X, ChevronLeft, ChevronRight} from "lucide-react";
 import {Input} from "@/components/ui/input";
 
 const ITEMS_PER_PAGE = 5;
 
 const Users = () => {
-    const { data, isLoading } = useSwapiPeople();
-    const { t } = useTranslation();
+    const {data, isLoading} = useSwapiPeople();
+    const {t} = useTranslation();
     const [activeTab, setActiveTab] = useState("all");
-    const { favorites, favoritesArray, toggleFavorite, clearAll } = useFavorites();
+    const {favorites, favoritesArray, toggleFavorite, clearAll} = useFavorites();
     const [currentPage, setCurrentPage] = useState(1);
     const [filterText, setFilterText] = useState("");
     const favoriteUsers = useMemo(() => {
         return data?.filter(user => {
             const id = user.url?.split('/').slice(-1)[0];
-            if(!id || !favorites[id]) return false;
-            if(!filterText) return true;
+            if (!id || !favorites[id]) return false;
+            if (!filterText) return true;
             const searchTerm = filterText.toLowerCase();
             return (
                 (user.name?.toLowerCase().includes(searchTerm)) ||
@@ -71,17 +71,17 @@ const Users = () => {
                 <TabsContent value="all" className="mt-6">
                     {isLoading ? (
                         <div className="p-4 text-center">
-                            <LogWatcher className="h-[300px]" />
+                            <LogWatcher className="h-[300px]"/>
                         </div>
                     ) : (
-                        <UsersTable data={data || []} />
+                        <UsersTable data={data || []}/>
                     )}
                 </TabsContent>
 
                 <TabsContent value="favorites" className="mt-6">
                     {isLoading ? (
                         <div className="p-4 text-center">
-                            <LogWatcher className="h-[300px]" />
+                            <LogWatcher className="h-[300px]"/>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -99,14 +99,16 @@ const Users = () => {
                                     </div>
 
                                     {filterText && (
-                                        <div className="mb-2 text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in">
+                                        <div
+                                            className="mb-2 text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in">
                                             <span className={favoriteUsers.length === 0 ? 'text-destructive' : ''}>
                                                 {favoriteUsers.length > 0
-                                                    ? t('matchesFound', { count: favoriteUsers.length })
+                                                    ? t('matchesFound', {count: favoriteUsers.length})
                                                     : t('noResultsFound')}
                                             </span>
 
-                                            <Button className="cursor-pointer" variant="ghost" size="sm" onClick={() => setFilterText('')}>
+                                            <Button className="cursor-pointer" variant="ghost" size="sm"
+                                                    onClick={() => setFilterText('')}>
                                                 {t("clearFilter")}
                                             </Button>
                                         </div>
@@ -118,7 +120,7 @@ const Users = () => {
                                     <CardHeader className="pb-2 px-4">
                                         <div className="flex justify-between items-center">
                                             <CardTitle className="text-xl font-bold tracking-tight px-0">
-                                                <span className="flex items-center gap-2">
+                                                <span className="-mt-5 flex items-center gap-2 text-primary/90">
                                                     {t('favorites')}
                                                 </span>
                                             </CardTitle>
@@ -126,7 +128,7 @@ const Users = () => {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="cursor-pointer h-8"
+                                                    className="-mt-3 cursor-pointer h-8 hover:bg-destructive/10 hover:text-destructive"
                                                     onClick={clearAll}
                                                 >
                                                     {t('clearAll')}
@@ -147,22 +149,49 @@ const Users = () => {
                                                         {paginatedFavorites.map((person) => (
                                                             <li
                                                                 key={person.url}
-                                                                className="flex items-center justify-between px-4 py-2 hover:bg-accent/50 transition-colors"
+                                                                className="flex items-center justify-between px-4 py-2.5 hover:bg-accent/50 transition-colors group border-l-2 border-l-transparent hover:border-l-primary"
                                                             >
-                                                                <span className="truncate text-sm font-medium">
-                                                                    {person.name}
-                                                                </span>
+                                                                <div className="w-[90%] overflow-x-auto scrollbar-thin pr-4 pb-3" style={{ scrollBehavior: "smooth" }}>
+                                                                    <div className="grid grid-flow-col auto-cols-[minmax(180px,1fr)] gap-6 min-w-max">
+                                                                        <span className="font-medium text-primary/90 whitespace-nowrap">
+                                                                          {person.name}
+                                                                        </span>
+
+                                                                        <span className="font-medium text-primary/90 whitespace-nowrap">
+                                                                            {t("gender")}<span className="font-medium ml-1 text-muted-foreground">: {person.gender === "n/a"
+                                                                            ? person.gender.toUpperCase()
+                                                                            : (["male", "female", "hermaphrodite", "none"].includes(person.gender)
+                                                                                ? t(person.gender).charAt(0).toUpperCase() + t(person.gender).slice(1).toLowerCase()
+                                                                                : "")}</span>
+                                                                        </span>
+                                                                        {person.birth_year && (
+                                                                            <span className="font-medium text-primary/90 whitespace-nowrap">
+                                                                                {t("birthYear")}<span className="font-medium ml-1 text-muted-foreground">: {person.birth_year}</span>
+                                                                            </span>
+                                                                        )}
+
+                                                                        {person.height && (
+                                                                            <span className="font-medium text-primary/90 whitespace-nowrap">
+                                                                                {t("height")}
+                                                                                <span className="font-medium ml-1 text-muted-foreground">: {person.height} cm</span>
+                                                                            </span>
+                                                                        )}
+
+                                                                    </div>
+                                                                </div>
+
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="sm"
-                                                                    className="cursor-pointer h-7 w-7 p-0"
+                                                                    className="cursor-pointer h-7 w-7 p-0 opacity-70 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all"
                                                                     onClick={() => {
                                                                         const id = person.url?.split('/').slice(-1)[0];
                                                                         if (id) toggleFavorite(id);
                                                                     }}
                                                                 >
-                                                                    <X className="h-3.5 w-3.5" />
-                                                                    <span className="sr-only">{t('removeFromFavorites')}</span>
+                                                                    <X className="h-3.5 w-3.5"/>
+                                                                    <span
+                                                                        className="sr-only">{t('removeFromFavorites')}</span>
                                                                 </Button>
                                                             </li>
                                                         ))}
@@ -171,7 +200,8 @@ const Users = () => {
                                             </CardContent>
 
                                             {favoriteUsers.length > ITEMS_PER_PAGE && (
-                                                <CardFooter className="flex justify-between items-center px-4 py-2 border-t bg-muted/50">
+                                                <CardFooter
+                                                    className="mt-20 flex justify-between items-center px-4 py-2 border-t bg-muted/50">
                                                     <div className="text-xs text-muted-foreground font-bold">
                                                         {t("pageInfo", {
                                                             current: `${startIndex + 1}-${Math.min(startIndex + ITEMS_PER_PAGE, favoriteUsers.length)}`,
@@ -186,7 +216,7 @@ const Users = () => {
                                                             disabled={currentPage === 1}
                                                             onClick={prevPage}
                                                         >
-                                                            <ChevronLeft className="h-4 w-4" />
+                                                            <ChevronLeft className="h-4 w-4"/>
                                                         </Button>
                                                         <Button
                                                             variant="outline"
@@ -195,7 +225,7 @@ const Users = () => {
                                                             disabled={currentPage === totalPages}
                                                             onClick={nextPage}
                                                         >
-                                                            <ChevronRight className="h-4 w-4" />
+                                                            <ChevronRight className="h-4 w-4"/>
                                                         </Button>
                                                     </div>
                                                 </CardFooter>
@@ -207,7 +237,7 @@ const Users = () => {
 
                             {favoriteUsers.length > 0 && (
                                 <div className="mt-6">
-                                    <UsersTable data={favoriteUsers} />
+                                    <UsersTable data={favoriteUsers}/>
                                 </div>
                             )}
                         </div>

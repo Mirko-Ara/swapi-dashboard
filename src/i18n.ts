@@ -5,6 +5,16 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            loggingIn: 'Logging in...',
+            loginFailed: 'Login failed. Please check your credentials.',
+            loggedIn: 'Logged in successfully!',
+            gender: "Gender",
+            hermaphrodite: "hermaphrodite",
+            none: "none",
+            male: "male",
+            female: "female",
+            birthYear: 'Birth Year',
+            height: 'Height',
             ailedCharactersCount_one: "{{count}} character failed to load.",
             failedCharactersCount_other: "{{count}} characters failed to load.",
             errorLoadingDataForPage: "Error loading data for page {{page}}!",
@@ -81,6 +91,16 @@ const resources = {
     },
     it: {
         translation: {
+            loggingIn: 'Accesso in corso...',
+            loggedIn: 'Accesso effettuato con successo!',
+            loginFailed: 'Accesso fallito. Controlla le tue credenziali.',
+            gender: "Genere",
+            hermaphrodite: "ermafrodita",
+            none: "nessuno",
+            male: "maschio",
+            female: "femmina",
+            birthYear: 'Anno di nascita',
+            height: 'Altezza',
             failedCharactersCount_one: "{{count}} personaggio non è stato caricato.",
             failedCharactersCount_other: "{{count}} personaggi non sono stati caricati.",
             errorLoadingDataForPage: "Errore durante il caricamento dei dati per la pagina {{page}}!",
@@ -157,6 +177,16 @@ const resources = {
     },
     es: {
         translation: {
+            loggingIn: 'Iniciando sesión...',
+            loggedIn: '¡Sesión iniciada con éxito!',
+            loginFailed: 'Error al iniciar sesión. Por favor, comprueba tus credenciales.',
+            gender: "Género",
+            hermaphrodite: "hermaphrodita",
+            none: "ninguno",
+            male: "masculino",
+            female: "femenino",
+            birthYear: 'Año de nacimiento',
+            height: 'Altura',
             failedCharactersCount_one: "{{count}} personaje no se pudo cargar.",
             failedCharactersCount_other: "{{count}} personajes no se pudieron cargar.",
             errorLoadingDataForPage: "Error al cargar los datos para la página {{page}}!",

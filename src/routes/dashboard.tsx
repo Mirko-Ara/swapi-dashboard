@@ -33,7 +33,7 @@ const gridColsClass = gridColsClassMap[CITY_CONFIG.length] || "md:grid-cols-1";
 
 const Dashboard = () => {
     const [isProcessingCache, setIsProcessingCache] = useState(false);
-    const { isLoading, refetch } = useSwapiPeople();
+    const { isLoading } = useSwapiPeople();
     const queryClient = useQueryClient();
     const { setCurrentPage, setFetchingMessage } = useLogWatcher();
     const { t } = useTranslation();
@@ -59,7 +59,7 @@ const Dashboard = () => {
         } finally {
             setTimeout(() => setIsProcessingCache(false), 500);
         }
-    }, [queryClient, refetch, setCurrentPage, setFetchingMessage]);
+    }, [queryClient, setCurrentPage, setFetchingMessage]);
 
     const hasCache = queryClient.getQueryData(["swapi-people"]) !== undefined;
     const lastUpdated = queryClient.getQueryState(["swapi-people"])?.dataUpdatedAt;

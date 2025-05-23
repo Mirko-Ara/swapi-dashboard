@@ -10,15 +10,17 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../components/ui/form"
 import { useTranslation } from 'react-i18next';
-
+import { toast } from "sonner";
+import {useState} from "react";
 const formSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
 })
 
 const Login = () => {
-    const navigate = useNavigate()
-    const { login } = useAuth()
+    const navigate = useNavigate();
+    const { login } = useAuth();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -29,10 +31,30 @@ const Login = () => {
     const { t } = useTranslation();
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        console.log("Login attempt with:", values)
-        login()
-        await navigate({ to: "/dashboard" })
-    }
+        setIsLoading(true);
+        console.log("Login attempt with:", values);
+        toast.promise(
+            new Promise((resolve, reject) => {
+                setTimeout(async () => {
+                    try {
+                        login();
+                        await navigate({to: "/dashboard"});
+                        resolve("success");
+                    } catch (error) {
+                        console.error("Error during login or navigation:", error);
+                        reject(error);
+                    } finally {
+                        setIsLoading(false);
+                    }
+                }, 800);
+            }),
+            {
+                loading: t("loggingIn"),
+                success: t("loggedIn"),
+                error: t("loginFailed"),
+            }
+        );
+    };
 
     return (
         <div className="flex min-h-screen items-center justify-center pt-0 pb-35">
@@ -74,8 +96,8 @@ const Login = () => {
                                     </FormItem>
                                 )}
                             />
-                            <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-                                {t("signIn")}
+                            <Button className="cursor-pointer w-full" type="submit" disabled={isLoading || form.formState.isSubmitting}>
+                                {isLoading ? t("loggingIn") : t("signIn")}
                             </Button>
                         </form>
                     </Form>

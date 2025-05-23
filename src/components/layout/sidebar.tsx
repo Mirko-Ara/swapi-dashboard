@@ -94,7 +94,7 @@ export const Sidebar = ({ onToggle }: { onToggle?: (open: boolean) => void }) =>
             <div
                 ref={sidebarRef}
                 className={`fixed top-0 left-0 h-full w-64 bg-background shadow-lg z-50 transform transition-transform duration-300 ease-in-out
-                ${mobileToggle ? 'translate-x-0' : '-translate-x-full'}`}
+                ${mobileToggle ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto max-h-screen`}
             >
                 <div className="flex h-full max-h-screen flex-col gap-2">
                     <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px]">
@@ -139,14 +139,14 @@ export const Sidebar = ({ onToggle }: { onToggle?: (open: boolean) => void }) =>
                             </Link>
                             <Link
                                 to="/settings"
-                                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary
+                                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary mb-2
                                 ${currentPath === "/settings" ? "bg-muted text-primary" : "text-muted-foreground"}`}
                                 onClick={() => setMobileToggle(false)}
                             >
                                 <Settings className="h-4 w-4" />
                                 {t('settings')}
                             </Link>
-                            <ThemeSwitcher />
+                            <ThemeSwitcher/>
                         </nav>
 
                         <div className="mt-4 px-4">

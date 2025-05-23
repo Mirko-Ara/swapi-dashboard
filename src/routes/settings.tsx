@@ -83,10 +83,10 @@ const Settings = () => {
 
 
     return (
-        <div className="flex flex-col">
-            <div className="flex-1 space-y-6 p-8 pt-6">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-bold tracking-tight">{t("settings")}</h2>
+        <div className="flex flex-col w-full max-w-3xl mx-auto">
+            <div className="flex-1 space-y-6 p-4 sm:p-8 pt-6">
+                <div className="flex items-center justify-center sm:justify-between">
+                    <h2 className="text-[2.25rem] text-center font-bold tracking-tight">{t("settings")}</h2>
                 </div>
 
                 <Tabs defaultValue="profile" className="space-y-6">
@@ -164,25 +164,28 @@ const Settings = () => {
                                                 )}
                                             />
                                         </div>
-                                        <FormField
-                                            control={profileForm.control}
-                                            name="email"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Email</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder={t("enterYourEmail")}
-                                                            type="email"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage className="text-red-500" >
-                                                        {profileForm.formState.errors.email?.message}
-                                                    </FormMessage>
-                                                </FormItem>
-                                            )}
-                                        />
+                                        <div className="w-full overflow-x-auto sm:overflow-visible">
+                                            <FormField
+                                                control={profileForm.control}
+                                                name="email"
+                                                render={({ field }) => (
+                                                    <FormItem className="mb-10 min-w-[300px]">
+                                                        <FormLabel>Email</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                className="min-w-[250px] sm:min-w-0"
+                                                                placeholder={t("enterYourEmail")}
+                                                                type="email"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage className="text-red-500">
+                                                            {profileForm.formState.errors.email?.message}
+                                                        </FormMessage>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
                                     </CardContent>
                                     <CardFooter className="flex justify-end border-t pt-4">
                                         <Button className="cursor-pointer" type="submit" disabled={isLoading}>
@@ -250,17 +253,39 @@ const Settings = () => {
                                                 )}
                                             />
                                         </div>
-                                        <div className="flex items-center gap-4 p-4 rounded-lg border bg-card/50 hover:bg-accent/10 transition-colors">
-                                            <div className="flex-1 space-y-1">
-                                                <p className="font-medium leading-none">{t("twoFactorAuth")}</p>
+                                        <div className="mb-7 group flex flex-col sm:flex-row items-center gap-4 sm:gap-5 p-4 rounded-xl border border-border/60 bg-gradient-to-r from-card/70 to-card/50 hover:from-accent/5 hover:to-accent/20 transition-all duration-300 shadow-lg shadow-primary/10 hover:shadow-xl hover:shadow-primary/20">
+                                            <div className="bg-primary/10 p-2.5 rounded-full flex items-center justify-center text-primary">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                    <path d="M12 16.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path>
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1 space-y-1.5 text-center sm:text-left">
+                                                <p className="font-medium leading-none text-foreground/90">{t("twoFactorAuth")}</p>
                                                 <p className="text-sm text-muted-foreground">{t("enhanceAccountSecurity")}</p>
                                             </div>
-                                            <Switch className="cursor-pointer"/>
+                                            <div className="flex flex-col items-center sm:items-end gap-1">
+                                                <Switch className="cursor-pointer data-[state=checked]:bg-primary" />
+                                                <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity">
+                                                  {t("twoFactorAuth")}
+                                                </span>
+                                            </div>
                                         </div>
                                     </CardContent>
-                                    <CardFooter className="flex justify-end border-t pt-4">
-                                        <Button variant="outline" className="cursor-pointer mr-2" type="button">{t("cancel")}</Button>
-                                        <Button className="cursor-pointer" type="submit" disabled={isLoading}>
+                                    <CardFooter className="flex flex-wrap gap-2 justify-center sm:justify-end border-t pt-4">
+                                        <Button
+                                            variant="outline"
+                                            className="cursor-pointer mr-0 sm:mr-2 w-full sm:w-auto"
+                                            type="button"
+                                        >
+                                            {t("cancel")}
+                                        </Button>
+                                        <Button
+                                            className="cursor-pointer w-full sm:w-auto"
+                                            type="submit"
+                                            disabled={isLoading}
+                                        >
                                             {isLoading ? t("saving") : t("updatePassword")}
                                         </Button>
                                     </CardFooter>
@@ -289,12 +314,42 @@ const Settings = () => {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="flex items-center justify-between rounded-lg border p-4">
-                                    <div className="space-y-0.5">
-                                        <div className="font-medium">{theme === "dark" ? t("lightMode") : t("darkMode")}</div>
-                                        <div className="text-sm text-muted-foreground">{t("toggleDarkMode")}</div>
+                                <div className="mb-4 group relative flex items-center gap-5 p-4 rounded-xl border border-border/60 bg-gradient-to-r from-card/80 to-card/60 hover:from-accent/5 hover:to-accent/20 transition-all duration-300 shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20">
+                                    <div className={`p-2.5 rounded-full flex items-center justify-center ${theme === "dark" ? "bg-blue-500/15 text-blue-500" : "bg-amber-500/15 text-amber-500"} transition-colors duration-300`}>
+                                        {theme === "dark" ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <circle cx="12" cy="12" r="4"></circle>
+                                                <path d="M12 2v2"></path>
+                                                <path d="M12 20v2"></path>
+                                                <path d="m4.93 4.93 1.41 1.41"></path>
+                                                <path d="m17.66 17.66 1.41 1.41"></path>
+                                                <path d="M2 12h2"></path>
+                                                <path d="M20 12h2"></path>
+                                                <path d="m6.34 17.66-1.41 1.41"></path>
+                                                <path d="m19.07 4.93-1.41 1.41"></path>
+                                            </svg>
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="black" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                                            </svg>
+                                        )}
                                     </div>
-                                    <Switch className="cursor-pointer" checked={theme === "dark"} onCheckedChange={handleThemeToggle} />
+                                    <div className="flex-1 space-y-1">
+                                        <p className="font-medium leading-none text-foreground/90">
+                                            {theme === "dark" ? t("lightMode") : t("darkMode")}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">{t("toggleDarkMode")}</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="font-semibold text-sm hidden sm:inline-block text-muted-foreground transition-colors duration-300">
+                                            {theme === "dark" ? "ON" : "OFF"}
+                                        </span>
+                                        <Switch
+                                            className="cursor-pointer transition-colors duration-300"
+                                            checked={theme === "dark"}
+                                            onCheckedChange={handleThemeToggle}
+                                        />
+                                    </div>
                                 </div>
                             </CardContent>
                             <CardFooter className="flex justify-end border-t pt-4">
