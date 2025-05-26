@@ -10,6 +10,8 @@ import {Button} from "@/components/ui/button";
 import {ScrollArea} from "@radix-ui/react-scroll-area";
 import {X, ChevronLeft, ChevronRight} from "lucide-react";
 import {Input} from "@/components/ui/input";
+import { CharacterDetailsModal } from '@/components/users/character-details-modal';
+import type {Person} from "@/types";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -20,6 +22,8 @@ const Users = () => {
     const {favorites, favoritesArray, toggleFavorite, clearAll} = useFavorites();
     const [currentPage, setCurrentPage] = useState(1);
     const [filterText, setFilterText] = useState("");
+    const [selectedCharacter, setSelectedCharacter] = useState<Person | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const favoriteUsers = useMemo(() => {
         return data?.filter(user => {
             const id = user.url?.split('/').slice(-1)[0];
@@ -33,8 +37,17 @@ const Users = () => {
                 (user.height?.toLowerCase().includes(searchTerm))
             );
         }) || [];
-    }, [data, favorites, filterText])
+    }, [data, favorites, filterText]);
 
+    const handleRowClick = (character: Person)=> {
+        setSelectedCharacter(character);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedCharacter(null);
+    }
     const totalPages = useMemo(() => Math.ceil(favoriteUsers.length / ITEMS_PER_PAGE), [favoriteUsers.length]);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const paginatedFavorites = useMemo(() => favoriteUsers.slice(startIndex, startIndex + ITEMS_PER_PAGE), [favoriteUsers, startIndex]);
@@ -149,7 +162,9 @@ const Users = () => {
                                                         {paginatedFavorites.map((person) => (
                                                             <li
                                                                 key={person.url}
-                                                                className="flex items-center justify-between px-4 py-2.5 hover:bg-accent/50 transition-colors group border-l-2 border-l-transparent hover:border-l-primary"
+                                                                onClick={() => handleRowClick(person)}
+                                                                className="flex items-center justify-between cursor-pointer px-4 py-2.5 hover:bg-accent/50 transition-colors group border-l-2 border-l-transparent hover:border-l-primary"
+                                                                title={t('clickToViewDetails')}
                                                             >
                                                                 <div className="w-[90%] overflow-x-auto scrollbar-thin pr-4 pb-3" style={{ scrollBehavior: "smooth" }}>
                                                                     <div className="grid grid-flow-col auto-cols-[minmax(180px,1fr)] gap-6 min-w-max">
@@ -199,7 +214,7 @@ const Users = () => {
                                                 </ScrollArea>
                                             </CardContent>
 
-                                            {favoriteUsers.length > ITEMS_PER_PAGE && (
+                                            {favoriteUsers.length >= ITEMS_PER_PAGE && (
                                                 <CardFooter
                                                     className="mt-20 flex justify-between items-center px-4 py-2 border-t bg-muted/50">
                                                     <div className="text-xs text-muted-foreground font-bold">
@@ -244,6 +259,11 @@ const Users = () => {
                     )}
                 </TabsContent>
             </Tabs>
+            <CharacterDetailsModal
+                character={selectedCharacter}
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+            />
         </div>
     );
 };

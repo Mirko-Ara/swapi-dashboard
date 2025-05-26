@@ -5,6 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            clickToViewDetails: "Click to view character details",
             mass: 'Mass (kg)',
             noMassDataAvailable: 'No mass data available',
             loadingChartData: 'Loading chart data...',
@@ -95,6 +96,7 @@ const resources = {
     },
     it: {
         translation: {
+            clickToViewDetails: "Clicca per visualizzare i dettagli del personaggio",
             mass: 'Massa (kg)',
             noMassDataAvailable: 'Nessun dato di massa disponibile',
             noGenderDataAvailable: 'Non sono disponibili dati di genere',
@@ -185,6 +187,7 @@ const resources = {
     },
     es: {
         translation: {
+            clickToViewDetails: "Haz clic para ver los detalles del personaje",
             mass: 'Masa (kg)',
             noMassDataAvailable: 'No hay datos de masa disponibles',
             noGenderDataAvailable: 'No hay datos de género disponibles',

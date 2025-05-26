@@ -1,5 +1,6 @@
 import { useFavorites } from '@/hooks/use-favorites';
 import { useTranslation } from 'react-i18next';
+import React, {useState} from "react";
 
 interface FavoriteTableCellProps {
     id: string;
@@ -9,13 +10,35 @@ interface FavoriteTableCellProps {
 export function FavoriteTableCell({id, name}: FavoriteTableCellProps) {
     const { t } = useTranslation();
     const { favorites, toggleFavorite } = useFavorites();
+    const [isClicked, setIsClicked] = useState(false);
     const isFavorite = favorites[id];
 
+    const handleFavoriteClick = (event: React.MouseEvent) => {
+        event.stopPropagation();
+        setIsClicked(true);
+        setTimeout(() => setIsClicked(false), 200);
+        toggleFavorite(id);
+    };
     return (
         <div className="flex items-center gap-2">
             <button
-                onClick={() => toggleFavorite(id)}
-                className="cursor-pointer focus:outline-none"
+                onClick={handleFavoriteClick}
+                className={`
+                    relative
+                    cursor-pointer 
+                    focus:outline-none
+                    p-1
+                    rounded-full
+                    transition-all
+                    duration-200
+                    ease-out
+                    transform
+                    hover:scale-155
+                    hover:bg-ghost-150
+                    hover:shadow-sm
+                    active:scale-110
+                    ${isClicked ? 'animate-pulse scale-155' : ''}
+                `}
                 title={isFavorite ? t('removeFromFavorites') : t('addToFavorites')}
                 >
                 {isFavorite ? '❤️' : '🤍'}

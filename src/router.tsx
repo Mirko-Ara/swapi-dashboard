@@ -43,7 +43,6 @@ const settingsRoute = createRoute({
     component: ProtectedRoute(Settings),
 })
 
-// Define route tree
 const routeTree = rootRoute.addChildren([
     loginRoute,
     dashboardRoute,

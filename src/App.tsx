@@ -6,7 +6,7 @@ import { useAuth } from "./providers/theme-hooks"
 import {LogWatcherProvider} from "@/context/loader-watcher-context.tsx";
 
 export default function App() {
-    const { isAuthenticated } = useAuth()
+    const { isAuthenticated } = useAuth();
 
     return (
         <LogWatcherProvider>

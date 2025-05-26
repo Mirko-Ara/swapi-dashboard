@@ -332,13 +332,13 @@ const Settings = () => {
                                 <div className="space-y-2">
                                     <Label>{t("language")}</Label>
                                     <Select defaultValue={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
-                                        <SelectTrigger className="w-full sm:w-[240px]">
+                                        <SelectTrigger className="cursor-pointer w-full sm:w-[240px]">
                                             <SelectValue placeholder={t("selectLanguage")} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="en">English</SelectItem>
-                                            <SelectItem value="it">Italiano</SelectItem>
-                                            <SelectItem value="es">Español</SelectItem>
+                                            <SelectItem className="cursor-pointer" value="en">English</SelectItem>
+                                            <SelectItem className="cursor-pointer" value="it">Italiano</SelectItem>
+                                            <SelectItem className="cursor-pointer" value="es">Español</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>

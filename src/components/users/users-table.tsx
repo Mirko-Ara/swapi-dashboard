@@ -22,6 +22,7 @@ import {
     TableRow,
 } from '../ui/table';
 import { LogWatcher } from '@/components/layout/log-watcher';
+import { CharacterDetailsModal } from './character-details-modal';
 import { useTranslation } from 'react-i18next';
 
 const globalFilterFn: FilterFn<Person> = (row, _columnId, filterValue) => {
@@ -49,6 +50,8 @@ interface UsersTableProps {
 export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
+    const [selectedCharacter, setSelectedCharacter] = useState<Person | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const { t } = useTranslation();
 
     const table = useReactTable({
@@ -71,6 +74,16 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
             globalFilter,
         },
     });
+
+    const handleRowClick = (character: Person)=> {
+        setSelectedCharacter(character);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedCharacter(null);
+    }
 
     if (isLoading) {
         return (
@@ -98,15 +111,15 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
 
                 {globalFilter && (
                     <div className="mb-2 text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in">
-              <span
-                  className={
-                      table.getFilteredRowModel().rows.length === 0 ? 'text-destructive' : ''
-                  }
-              >
-                {table.getFilteredRowModel().rows.length > 0
-                ? t('matchesFound', { count: table.getFilteredRowModel().rows.length })
-                : t('noResultsFound')}
-              </span>
+                        <span
+                              className={
+                                  table.getFilteredRowModel().rows.length === 0 ? 'text-destructive' : ''
+                                }
+                        >
+                            {table.getFilteredRowModel().rows.length > 0
+                            ? t('matchesFound', { count: table.getFilteredRowModel().rows.length })
+                            : t('noResultsFound')}
+                        </span>
 
                         <Button className="cursor-pointer" variant="ghost" size="sm" onClick={() => setGlobalFilter('')}>
                             {t("clearFilter")}
@@ -136,6 +149,9 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                                     <TableRow
                                         key={row.id}
                                         data-state={row.getIsSelected() ? 'selected' : undefined}
+                                        onClick={() => handleRowClick(row.original)}
+                                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                        title={t('clickToViewDetails')}
                                     >
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell key={cell.id}>
@@ -188,6 +204,12 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
                     </div>
                 </div>
             </div>
+
+            <CharacterDetailsModal
+                character={selectedCharacter}
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+            />
         </div>
     );
 };

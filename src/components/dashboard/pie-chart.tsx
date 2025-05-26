@@ -34,7 +34,7 @@ const CustomLabel = (theme: string, isMobile: boolean, isTablet: boolean) => (pr
             fill={textColor}
             textAnchor={x > cx ? "start" : "end"}
             dominantBaseline="central"
-            fontSize={isMobile ? 8 : isTablet ? 11 : 13}
+            fontSize={isMobile ? 8 : isTablet ? 10 : 13}
             className="select-none"
         >
             {isMobile && percent < 0.01 ? `${(percent * 100).toFixed(0)}%` : `${name}: ${(percent * 100).toFixed(0)}%`}
@@ -86,7 +86,7 @@ const PieChartComponent = () => {
         );
     }
 
-    const outerRadius = isMobile ? 45 : isTablet ? 100 : 120;
+    const outerRadius = isMobile ? 45 : isTablet ? 85 : 120;
     const chartHeight = isMobile ? 220 : isTablet ? 370 : 420;
 
     return (
