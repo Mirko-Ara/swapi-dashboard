@@ -8,9 +8,9 @@ import {
     type SortingState,
     useReactTable,
 } from '@tanstack/react-table';
-import { columns } from './columns';
+import { columns as originalColumns } from './columns';
 import type { Person } from '@/types';
-import { useState } from 'react';
+import {useMemo, useState} from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import {
@@ -53,6 +53,18 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
     const [selectedCharacter, setSelectedCharacter] = useState<Person | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { t } = useTranslation();
+
+    const columns = useMemo(() => {
+        return originalColumns.map(column => {
+            return {
+                ...column,
+                meta: {
+                    ...(column.meta || {}),
+                    t: t,
+                }
+            };
+        });
+    }, [t]);
 
     const table = useReactTable({
         data,

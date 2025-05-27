@@ -57,25 +57,25 @@ const Login = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center pt-0 pb-35">
-            <Card className="w-full max-w-md shadow-lg">
+        <div className="flex min-h-screen items-center justify-center pt-0 pb-8 sm:pb-12 md:pb-20 lg:pb-[8.75rem]">
+            <Card className="w-full max-w-xs sm:max-w-sm lg:max-w-lg shadow-lg">
                 <CardHeader>
-                    <CardTitle className="text-2xl">Login</CardTitle>
-                    <CardDescription>{t("enterYourCredentials")}</CardDescription>
+                    <CardTitle className="text-xl sm:text-2xl lg:text-3xl">Login</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm lg:text-base">{t("enterYourCredentials")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4 lg:space-y-6">
                             <FormField
                                 control={form.control}
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email</FormLabel>
+                                        <FormLabel className="text-xs sm:text-sm lg:text-base">Email</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="m@example.com" {...field} />
+                                            <Input placeholder="m@example.com" {...field} className="text-xs h-9 px-3 py-2 sm:text-sm sm:h-10 md:h-11 md:text-base lg:h-12 lg:px-4 lg:py-3"/>
                                         </FormControl>
-                                        <FormMessage className="text-red-500">
+                                        <FormMessage className="text-red-500 text-sm sm:text-sm md:text-base">
                                             {form.formState.errors.email?.message}
                                         </FormMessage>
                                     </FormItem>
@@ -86,17 +86,17 @@ const Login = () => {
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Password</FormLabel>
+                                        <FormLabel className="text-xs sm:text-sm lg:text-base">Password</FormLabel>
                                         <FormControl>
-                                            <Input type="password" autoComplete="new-password" placeholder="••••••••" {...field} />
+                                            <Input type="password" autoComplete="new-password" placeholder="••••••••" {...field} className="text-xs h-9 px-3 py-2 sm:text-sm sm:h-10 md:h-11 md:text-base lg:h-12 lg:px-4 lg:py-3 "/>
                                         </FormControl>
-                                        <FormMessage className="text-red-500">
+                                        <FormMessage className="text-red-500 text-xs sm:text-sm md:text-base">
                                             {form.formState.errors.password?.message}
                                         </FormMessage>
                                     </FormItem>
                                 )}
                             />
-                            <Button className="cursor-pointer w-full" type="submit" disabled={isLoading || form.formState.isSubmitting}>
+                            <Button className="cursor-pointer w-full text-xs h-9 px-4 py-2 sm:text-sm sm:h-10 md:h-11 md:text-base lg:h-12 lg:px-5 lg:py-3" type="submit" disabled={isLoading || form.formState.isSubmitting}>
                                 {isLoading ? t("loggingIn") : t("signIn")}
                             </Button>
                         </form>
@@ -104,7 +104,7 @@ const Login = () => {
                 </CardContent>
             </Card>
         </div>
-    )
+    );
 }
 
 export default Login

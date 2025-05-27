@@ -190,10 +190,12 @@
 .scrollbar-thin::-webkit-scrollbar {
   height: 1px;
   background: transparent;
+  transition: all 0.3s ease;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: #d1d5db;
   border-radius: 4px;
+  transition: all 0.3s ease;
 }
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;

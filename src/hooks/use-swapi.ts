@@ -52,8 +52,8 @@ const fetchPeopleDetailsBatch = async (
     const results: Person[] = [];
     const failedCount = { count: 0 };
 
-    // Fetch in batches of 5 in parallel
-    const batchSize = 5;
+    // batch size for fetching multiple characters in parallel
+    const batchSize = 10;
 
     for (let i = 0; i < urls.length; i += batchSize) {
         const batchUrls = urls.slice(i, i + batchSize);
@@ -100,7 +100,6 @@ const fetchPeopleDetailsBatch = async (
 
 
 const fetchAllPeople = async (): Promise<Person[]> => {
-    // Caching layer
     const cachedData = localStorage.getItem("swapi-people-data");
     const cacheTimestamp = localStorage.getItem("swapi-people-timestamp");
     const cacheDuration: number = 1000 * 60 * 60 * 2;

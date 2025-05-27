@@ -5,6 +5,11 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            hairColor: 'Hair Color',
+            skinColor: 'Skin Color',
+            eyeColor: 'Eye Color',
+            height: 'Height (cm)',
+            name: 'Name',
             clickToViewDetails: "Click to view character details",
             mass: 'Mass (kg)',
             noMassDataAvailable: 'No mass data available',
@@ -19,7 +24,6 @@ const resources = {
             male: "male",
             female: "female",
             birthYear: 'Birth Year',
-            height: 'Height',
             ailedCharactersCount_one: "{{count}} character failed to load.",
             failedCharactersCount_other: "{{count}} characters failed to load.",
             errorLoadingDataForPage: "Error loading data for page {{page}}!",
@@ -96,6 +100,11 @@ const resources = {
     },
     it: {
         translation: {
+            hairColor: 'Colore dei capelli',
+            skinColor: 'Colore della pelle',
+            eyeColor: 'Colore degli occhi',
+            height: 'Altezza (cm)',
+            name: 'Nome',
             clickToViewDetails: "Clicca per visualizzare i dettagli del personaggio",
             mass: 'Massa (kg)',
             noMassDataAvailable: 'Nessun dato di massa disponibile',
@@ -110,7 +119,6 @@ const resources = {
             male: "maschio",
             female: "femmina",
             birthYear: 'Anno di nascita',
-            height: 'Altezza',
             failedCharactersCount_one: "{{count}} personaggio non è stato caricato.",
             failedCharactersCount_other: "{{count}} personaggi non sono stati caricati.",
             errorLoadingDataForPage: "Errore durante il caricamento dei dati per la pagina {{page}}!",
@@ -187,6 +195,11 @@ const resources = {
     },
     es: {
         translation: {
+            hairColor: 'Color de cabello',
+            skinColor: 'Color de piel',
+            eyeColor: 'Color de ojos',
+            height: 'Altura (cm)',
+            name: 'Nombre',
             clickToViewDetails: "Haz clic para ver los detalles del personaje",
             mass: 'Masa (kg)',
             noMassDataAvailable: 'No hay datos de masa disponibles',
@@ -201,7 +214,6 @@ const resources = {
             male: "masculino",
             female: "femenino",
             birthYear: 'Año de nacimiento',
-            height: 'Altura',
             failedCharactersCount_one: "{{count}} personaje no se pudo cargar.",
             failedCharactersCount_other: "{{count}} personajes no se pudieron cargar.",
             errorLoadingDataForPage: "Error al cargar los datos para la página {{page}}!",

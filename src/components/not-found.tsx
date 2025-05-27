@@ -39,7 +39,7 @@ export default function NotFound() {
     if (redirecting) {
         return (
             <div className="flex flex-col items-center justify-center gap-4 min-h-screen -mt-20">
-                <LoaderSpinner className="w-10 h-10" />
+                <LoaderSpinner size="lg" />
                 <p className="text-base text-muted-foreground font-medium">{t("redirecting")}</p>
             </div>
         );
