@@ -5,6 +5,12 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            species: 'Species',
+            starships: 'Starships',
+            films: 'Films',
+            vehicles: 'Vehicles',
+            loading: 'Loading...',
+            characterDetailsDescription: 'Details of character: {{ name }}',
             hairColor: 'Hair Color',
             skinColor: 'Skin Color',
             eyeColor: 'Eye Color',
@@ -100,6 +106,12 @@ const resources = {
     },
     it: {
         translation: {
+            species: 'Specie',
+            starships: "Navi Stellari",
+            films: 'Film',
+            vehicles: 'Veicoli',
+            loading: 'Caricamento in corso...',
+            characterDetailsDescription: 'Dettagli del personaggio: {{ name }}',
             hairColor: 'Colore dei capelli',
             skinColor: 'Colore della pelle',
             eyeColor: 'Colore degli occhi',
@@ -195,6 +207,12 @@ const resources = {
     },
     es: {
         translation: {
+            species: 'Especies',
+            starships: 'Naves Estelares',
+            films: 'Películas',
+            vehicles: 'Vehículos',
+            loading: 'Cargando...',
+            characterDetailsDescription: 'Detalles del personaje: {{ name }}',
             hairColor: 'Color de cabello',
             skinColor: 'Color de piel',
             eyeColor: 'Color de ojos',

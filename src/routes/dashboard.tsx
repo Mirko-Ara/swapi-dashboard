@@ -45,12 +45,14 @@ const Dashboard = () => {
         try {
             queryClient.removeQueries({ queryKey: ["swapi-people"] });
             queryClient.removeQueries({ queryKey: ["favorites"] });
+            queryClient.removeQueries({ queryKey: ['swapi-info-person'], exact: false });
             localStorage.removeItem("swapi-people-data");
             localStorage.removeItem("swapi-people-timestamp");
             localStorage.removeItem("favorites");
             console.clear();
             setCurrentPage(null);
             setFetchingMessage("Refreshing data...");
+            await queryClient.invalidateQueries({ queryKey: ["swapi-people"] });
             await queryClient.fetchQuery({ queryKey: ["swapi-people"] });
             setFetchingMessage("Data loaded successfully!");
         } catch (error) {
@@ -108,7 +110,7 @@ const Dashboard = () => {
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm sm:text-base">{t("genderDistribution")}</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-2 sm:pl-2">
+                        <CardContent className="p-2 sm:p-6">
                             {isLoading ? (
                                 <LogWatcher className="h-[200px] sm:h-[300px]" />
                             ) : (

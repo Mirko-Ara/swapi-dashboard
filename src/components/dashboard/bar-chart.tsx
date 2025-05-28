@@ -23,7 +23,11 @@ const BarChartComponent = () => {
     });
 
     if (isLoading) {
-        return <div className="flex h-[250px] sm:h-[300px] md:h-[350px] items-center justify-center">{t("loadingChartData")}</div>;
+        return (
+            <div className="flex h-[250px] sm:h-[300px] md:h-[350px] items-center justify-center">
+                {t("loadingChartData")}
+            </div>
+        );
     }
 
     const charactersForChart = isSmallMobile ? 10 : isMobile ? 10 : isTablet ? 16 : 20;

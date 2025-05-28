@@ -1,12 +1,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {User, Calendar, Ruler, Eye, Palette, Weight, Heart, X} from 'lucide-react';
+import {
+    User,
+    Calendar,
+    Ruler,
+    Eye,
+    Palette,
+    Weight,
+    Heart,
+    X,
+    Home,
+    Clapperboard,
+    Car,
+    Dna,
+    Rocket
+} from 'lucide-react';
 import type { Person } from '@/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import React, {useCallback, useMemo, useEffect, useRef, useState} from "react";
 import {useFavorites} from "@/hooks/use-favorites.tsx";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import {useQuery} from "@tanstack/react-query";
+import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
 
 interface CharacterDetailsModalProps {
     character: Person | null;
@@ -20,6 +36,60 @@ type DetailItem = {
     value: string | number | null;
     color: string;
 };
+
+interface SwapiInfoExtra {
+    films?: { title: string }[];
+    species?: { name: string }[];
+    vehicles?: { name: string }[];
+    starships?: { name: string }[];
+}
+
+const useSwapiInfoDetails = (character: Person | null) => {
+    const id = character?.url.split("/").slice(-1)[0];
+    return useQuery<SwapiInfoExtra>({
+        queryKey: [`swapi-info-person/${id}/`],
+        queryFn: async () => {
+            if (!id || !character) {
+                throw new Error("character ID or data is not available");
+            }
+            const fetchDataFromUrls = async (urls: string[]) => {
+                return Promise.all(
+                    urls.map(async (url) => {
+                        try {
+                            const res = await fetch(url);
+                            if (!res.ok) {
+                                new Error(`Failed to fetch: ${res.statusText}`);
+                            }
+                            return await res.json();
+                    } catch(error) {
+                            console.error(`Error fetching data from URL: ${url}:  ${error}`);
+                            return;
+                        }
+                    })
+                );
+            };
+            const res = await fetch(`https://swapi.py4e.com/api/people/${id}/`);
+            if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
+            const person = await res.json();
+
+            const films = await fetchDataFromUrls(person.films || []);
+            const species = await fetchDataFromUrls(person.species || []);
+            const vehicles = await fetchDataFromUrls(person.vehicles || []);
+            const starships = await fetchDataFromUrls(person.starships || []);
+
+            return {
+                films: films.map(film => ({ title: film.title})),
+                species: species.map(s => ({ name: s.name})),
+                vehicles: vehicles.map(v => ({ name: v.name})),
+                starships: starships.map(starship => ({name: starship.name})),
+            }
+        },
+        enabled: !!id && !!character,
+        staleTime: Infinity,
+        gcTime: Infinity,
+    });
+};
+
 const DetailCard: React.FC<{detail: DetailItem, t: (key: string) => string, index: number }> = React.memo(({ detail, t, index}) => {
     const Icon = detail.icon;
     return (
@@ -45,9 +115,9 @@ const DetailCard: React.FC<{detail: DetailItem, t: (key: string) => string, inde
                 <CardContent className="pt-0 relative z-10">
                     <Badge
                         variant="secondary"
-                        className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-gray-200 capitalize text-sm px-4 py-2 font-medium border-0 shadow-sm group-hover:shadow-md group-hover:from-blue-50 group-hover:to-blue-100 dark:group-hover:from-blue-900/20 dark:group-hover:to-blue-800/20 transition-all duration-300"
+                        className="break-words whitespace-normal bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-gray-200 capitalize text-sm px-4 py-2 font-medium border-0 shadow-sm group-hover:shadow-md group-hover:from-blue-50 group-hover:to-blue-100 dark:group-hover:from-blue-900/20 dark:group-hover:to-blue-800/20 transition-all duration-300"
                     >
-                        {detail.value || t("unknown")}
+                        {detail.value !== null && detail.value !== "" ? detail.value : t("unknown")}
                     </Badge>
                 </CardContent>
             </Card>
@@ -62,8 +132,9 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
     const [showBottomShadow, setShowBottomShadow] = useState(false);
     const [topShadowOpacity, setTopShadowOpacity] = useState(0);
     const [bottomShadowOpacity, setBottomShadowOpacity] = useState(0);
+    const [homeworldName, setHomeworldName] = useState<string | null>(null);
     const { favorites } = useFavorites();
-
+    const { data: extra, isLoading: loadingExtra} = useSwapiInfoDetails(character);
     const handleScroll = useCallback(() => {
         const el = scrollRef.current;
         if (!el) return;
@@ -88,6 +159,31 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
     }, []);
 
     useEffect(() => {
+        const fetchHomeWorld = async () => {
+            if (!character?.homeworld) {
+                setHomeworldName(null);
+                return;
+            }
+
+            try {
+                const response = await fetch(String(character.homeworld));
+                if (!response.ok) {
+                    new Error(`Failed to fetch: ${response.statusText}`);
+                }
+                const data = await response.json();
+                console.log("Homeworld response:", data);
+                const name = data.result?.properties?.name;
+                setHomeworldName(name === 'Unknown' ?  t("unknown") : name || t("unknown"));
+            } catch (error) {
+                console.error("Error fetching homeworld:", error, character.homeworld);
+                setHomeworldName(t("unknown"));
+            }
+        };
+
+        fetchHomeWorld().catch((error) => console.error("Error fetching homeworld: ", error));
+    }, [character, t]);
+
+    useEffect(() => {
         if(isOpen && character) {
             const timeoutId = setTimeout(() => {
                 handleScroll();
@@ -104,61 +200,102 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
         return false;
     }, [character, favorites]);
 
-    const details : (DetailItem[] | null) = useMemo(() => {
-       if(character) {
-           return [
-               {
-                   icon: User,
-                   label: t('name'),
-                   value: character.name,
-                   color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
-               },
-               {
-                   icon: Palette,
-                   label: t('gender'),
-                   value: character.gender,
-                   color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
-               },
-               {
-                   icon: Calendar,
-                   label: t("birthYear"),
-                   value: character.birth_year,
-                   color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
-               },
-               {
-                   icon: Ruler,
-                   label: t("height"),
-                   value: character.height ? `${character.height} cm` : 'Unknown',
-                   color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
-               },
-               {
-                   icon: Weight,
-                   label: t("mass"),
-                   value: character.mass ? `${character.mass} kg` : 'Unknown',
-                   color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
-               },
-               {
-                   icon: Eye,
-                   label: t("eyeColor"),
-                   value: character.eye_color,
-                   color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
-               },
-               {
-                   icon: Palette,
-                   label: t("hairColor"),
-                   value: character.hair_color,
-                   color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
-               },
-               {
-                   icon: Palette,
-                   label: t("skinColor"),
-                   value: character.skin_color,
-                   color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
-               }
-           ];
-       }
-       return null;
-    },  [t, character] );
+    const details: (DetailItem[] | null) = useMemo(() => {
+        if(character) {
+            const baseDetails: DetailItem[] = [
+                {
+                    icon: User,
+                    label: t('name'),
+                    value: character.name,
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                },
+                {
+                    icon: Palette,
+                    label: t('gender'),
+                    value: character.gender,
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                },
+                {
+                    icon: Calendar,
+                    label: t("birthYear"),
+                    value: character.birth_year,
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                },
+                {
+                    icon: Ruler,
+                    label: t("height"),
+                    value: character.height ? `${character.height} cm` : 'Unknown',
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                },
+                {
+                    icon: Weight,
+                    label: t("mass"),
+                    value: character.mass ? `${character.mass} kg` : 'Unknown',
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                },
+                {
+                    icon: Eye,
+                    label: t("eyeColor"),
+                    value: character.eye_color,
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                },
+                {
+                    icon: Palette,
+                    label: t("hairColor"),
+                    value: character.hair_color,
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                },
+                {
+                    icon: Palette,
+                    label: t("skinColor"),
+                    value: character.skin_color,
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                },
+                {
+                    icon: Home,
+                    label: 'Homeworld',
+                    value: homeworldName ??  t("loading"),
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                }
+            ];
+            if(extra?.films && extra.films.length > 0) {
+                baseDetails.push({
+                    icon: Clapperboard,
+                    label: t("films"),
+                    value: extra.films.map(film => film.title).join(", "),
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                });
+            }
+
+            if(extra?.vehicles && extra.vehicles.length > 0) {
+                baseDetails.push({
+                    icon: Car,
+                    label: t("vehicles"),
+                    value: extra.vehicles.map(vehicle => vehicle.name).join(", "),
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                });
+            }
+            if(extra?.species && extra.species.length > 0) {
+                baseDetails.push({
+                    icon: Dna,
+                    label: t("species"),
+                    value: extra.species.map(s => s.name).join(", "),
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                });
+            }
+            if(extra?.starships && extra.starships.length > 0) {
+                baseDetails.push({
+                    icon: Rocket,
+                    label: t("starships"),
+                    value: extra.starships.map(starship => starship.name).join(", "),
+                    color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
+                });
+            }
+
+            return baseDetails;
+        }
+        return null;
+    }, [character, t, homeworldName, extra]);
 
     if (details === null || character === null) return null;
 
@@ -226,6 +363,9 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
                                             </div>
                                         </span>
                                     </DialogTitle>
+                                    <DialogDescription className="sr-only">
+                                        {t("characterDetailsDescription", { name: character.name })}
+                                    </DialogDescription>
                                     <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 rounded-full mt-4 animate-pulse" />
                                 </div>
                             </DialogHeader>
@@ -235,6 +375,11 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
                                     <DetailCard key={index} detail={detail} t={t} index={index} />
                                 ))}
                             </div>
+                            {loadingExtra && (
+                                <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 italic">
+                                    <LoaderSpinner size="md" className="flex items-center justify-center p-6" />
+                                </div>
+                            )}
                         </div>
                     </DialogContent>
                 </Dialog>

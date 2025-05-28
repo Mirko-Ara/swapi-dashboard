@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import {memo, useEffect, useState} from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { format } from "date-fns"
 
@@ -8,7 +8,7 @@ interface CityTimeProps {
     timeZone: string
 }
 
-export function CityTime({ city, timeZone }: CityTimeProps) {
+export const  CityTime = memo(function CityTime({ city, timeZone }: CityTimeProps) {
     const [time, setTime] = useState(new Date())
 
     useEffect(() => {
@@ -39,4 +39,4 @@ export function CityTime({ city, timeZone }: CityTimeProps) {
             </CardContent>
         </Card>
     )
-}
+});

@@ -7,7 +7,11 @@ export interface Person {
     eye_color: string
     birth_year: string
     gender: string
-    homeworld: string
     url: string
+    homeworld?: string
     isFavorite?: boolean
+    films?: string[];
+    species?: string[];
+    vehicles?: string[];
+    starships?: string[];
 }

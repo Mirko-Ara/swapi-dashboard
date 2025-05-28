@@ -57,7 +57,6 @@ const fetchPeopleDetailsBatch = async (
 
     for (let i = 0; i < urls.length; i += batchSize) {
         const batchUrls = urls.slice(i, i + batchSize);
-        // Promise.allSettled per batch per page
         const batchPromises = batchUrls.map(async (url) => {
             const res = await fetchWithRetry(url);
             if (!res) {
@@ -157,7 +156,7 @@ const fetchAllPeople = async (): Promise<Person[]> => {
 
         const characterUrls = listJson.results.map((r) => r.url);
 
-        const peopleFromPage = await fetchPeopleDetailsBatch(characterUrls, 500);
+        const peopleFromPage = await fetchPeopleDetailsBatch(characterUrls, 1000);
 
         allPeople.push(...peopleFromPage);
 
