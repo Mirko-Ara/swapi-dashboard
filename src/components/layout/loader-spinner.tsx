@@ -1,6 +1,6 @@
 interface SpinnerProps {
     className?: string;
-    size?: "sm" | "md" | "lg";
+    size?: "sm" | "md" | "lg" | "xl";
 }
 
 export function LoaderSpinner({ className = "", size = "md" }: SpinnerProps) {
@@ -8,6 +8,7 @@ export function LoaderSpinner({ className = "", size = "md" }: SpinnerProps) {
         sm: "w-4 h-4",
         md: "w-8 h-8",
         lg: "w-12 h-12",
+        xl: "w-20 h-20",
     };
 
     return (

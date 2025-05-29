@@ -200,3 +200,12 @@
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
+:root {
+  --webkit-font-smoothing: antialiased;
+  --moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.backdrop-blur-sm {
+   backdrop-filter: blur(4px);
+ }

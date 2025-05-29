@@ -38,9 +38,9 @@ export default function NotFound() {
 
     if (redirecting) {
         return (
-            <div className="flex flex-col items-center justify-center gap-4 min-h-screen -mt-20">
-                <LoaderSpinner size="lg" />
-                <p className="text-base text-muted-foreground font-medium">{t("redirecting")}</p>
+            <div className="flex flex-col items-center justify-center w-full h-full gap-4 min-h-screen -mt-20">
+                <LoaderSpinner size="xl" />
+                <p className="text-xl text-muted-foreground font-medium">{t("redirecting")}</p>
             </div>
         );
     }

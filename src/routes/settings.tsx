@@ -41,6 +41,19 @@ const Settings = () => {
     const { t, i18n } = useTranslation();
     const { theme, setTheme } = useTheme();
     const [isLoading, setIsLoading] = useState(false);
+    const STORAGE_KEY = "twoFactorAuthEnabled";
+    const [isEnabled, setIsEnabled] = useState<boolean>(() => {
+        if(typeof window !== "undefined") {
+            return localStorage.getItem(STORAGE_KEY) === "true";
+        }
+        return false;
+    });
+    const handleToggle2FA = (checked: boolean) => {
+        setIsEnabled(checked);
+        if (typeof window !== "undefined") {
+            localStorage.setItem(STORAGE_KEY, String(checked));
+        }
+    };
 
     const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
@@ -287,7 +300,11 @@ const Settings = () => {
                                                 <p className="text-sm text-muted-foreground">{t("enhanceAccountSecurity")}</p>
                                             </div>
                                             <div className="flex flex-col items-center sm:items-end gap-1">
-                                                <Switch className="cursor-pointer data-[state=checked]:bg-primary" />
+                                                <Switch
+                                                    checked={isEnabled}
+                                                    onCheckedChange={handleToggle2FA}
+                                                    className="cursor-pointer data-[state=checked]:bg-primary"
+                                                />
                                                 <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity">
                                                   {t("twoFactorAuth")}
                                                 </span>
