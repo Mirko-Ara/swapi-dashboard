@@ -70,8 +70,8 @@ export const Sidebar = ({ onToggle }: { onToggle?: (open: boolean) => void }) =>
     if (logoutRedirecting) {
         return (
             <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 w-full h-screen bg-background">
-                <LoaderSpinner size="lg"/>
-                <p className="text-base font-medium text-muted-foreground">
+                <LoaderSpinner size="xl"/>
+                <p className="text-xl text-muted-foreground font-medium">
                     {t('loggingOut')}
                 </p>
             </div>

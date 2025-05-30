@@ -81,7 +81,7 @@ const PieChartComponent = () => {
     if (pieData.length === 0) {
         return (
             <div className="flex items-center justify-center h-[200px] sm:h-[350px] md:h-[400px]">
-                {t("noGenderDataAvailable")}
+                <span className="text-xs sm:text-sm md:text-md lg:text-lg text-shadow">{t("noGenderDataAvailable")}</span>
             </div>
         );
     }

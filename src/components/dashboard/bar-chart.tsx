@@ -40,7 +40,7 @@ const BarChartComponent = () => {
         })) || [];
 
     if (barData.length === 0) {
-        return <div className="flex h-[250px] sm:h-[300px] md:h-[350px] items-center justify-center">{t("noMassDataAvailable")}</div>;
+        return <div className="flex h-[250px] sm:h-[300px] md:h-[350px] items-center justify-center"><span className="text-xs sm:text-sm md:text-md lg:text-lg text-shadow">{t("noMassDataAvailable")}</span></div>;
     }
 
     const chartHeight = isMobile ? 250 : isTablet ? 300 : 350;

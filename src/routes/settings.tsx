@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useCallback, useState} from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,17 +16,17 @@ import {useForm} from "react-hook-form";
 
 const profileFormSchema = z.object({
    firstName: z.string()
-       .min(2, {message: "First name must be at least 2 characters long"})
+       .min(10, {message: "First name must be at least 10 characters long"})
        .max(20, {message: "First name must not exceed 20 characters"}),
     lastName: z.string()
-        .min(2, {message: "Last name must be at least 2 characters long"})
+        .min(10, {message: "Last name must be at least 10 characters long"})
         .max(20, {message: "Last name must not exceed 20 characters"}),
     email: z.string().email("Please enter a valid email address"),
 });
 
 const accountFormSchema = z.object({
     currentPassword: z.string()
-        .min(1, { message: "Current password is required" }),
+        .min(6, { message: "Current password is required" }),
     newPassword: z.string()
         .min(6, { message: "Password must be at least 6 characters long" })
         .max(50, { message: "Password must not exceed 50 characters" }),
@@ -48,12 +48,12 @@ const Settings = () => {
         }
         return false;
     });
-    const handleToggle2FA = (checked: boolean) => {
+    const handleToggle2FA = useCallback((checked: boolean) => {
         setIsEnabled(checked);
         if (typeof window !== "undefined") {
             localStorage.setItem(STORAGE_KEY, String(checked));
         }
-    };
+    }, [STORAGE_KEY]);
 
     const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
@@ -79,27 +79,28 @@ const Settings = () => {
         setTimeout(() => setIsLoading(false), 800);
     };
 
-    const handleUpdatePassword = (values: z.infer<typeof accountFormSchema>) => {
+    const handleUpdatePassword = useCallback((values: z.infer<typeof accountFormSchema>) => {
         setIsLoading(true);
         console.log("Password updated:", values);
         setTimeout(() => {
-            accountForm.reset({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: ""
-            });
+            accountForm.reset();
             setIsLoading(false);
         }, 800);
-    };
+    }, [accountForm]);
 
-    const handleSaveAppearance = () => {
+    const handleResetProfile = useCallback(() => {
+        profileForm.reset();
+    }, [profileForm]);
+
+    const handleSaveAppearance = useCallback(() => {
         setIsLoading(true);
         console.log("Appearance saved:", {theme, language: i18n.language});
         setTimeout(() => setIsLoading(false), 800);
-    };
-    const handleThemeToggle = () => {
+    }, [theme, i18n.language]);
+
+    const handleThemeToggle = useCallback(() => {
         setTheme(theme === "dark" ? "light" : "dark");
-    };
+    }, [setTheme, theme]);
 
 
     return (
@@ -212,13 +213,7 @@ const Settings = () => {
                                             variant="outline"
                                             className="cursor-pointer mr-0 sm:mr-2 w-full sm:w-auto"
                                             type="button"
-                                            onClick={() => {
-                                                profileForm.reset({
-                                                    firstName: "",
-                                                    lastName: "",
-                                                    email: ""
-                                                });
-                                            }}
+                                            onClick={handleResetProfile}
                                         >
                                             {t("cancel")}
                                         </Button>
@@ -386,9 +381,6 @@ const Settings = () => {
                                         <p className="text-sm text-muted-foreground">{t("toggleDarkMode")}</p>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span className="font-semibold text-sm hidden sm:inline-block text-muted-foreground transition-colors duration-300">
-                                            {theme === "dark" ? "ON" : "OFF"}
-                                        </span>
                                         <Switch
                                             className="cursor-pointer transition-colors duration-300"
                                             checked={theme === "dark"}

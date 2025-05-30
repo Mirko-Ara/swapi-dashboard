@@ -80,7 +80,7 @@ const Dashboard = () => {
                             <Button
                                 variant="outline"
                                 onClick={handleCacheAction}
-                                className="cursor-pointer hover:scale-[0.98] active:scale-[0.96] transition-transform text-sm sm:text-base"
+                                className="cursor-pointer animate-pulse hover:scale-[0.98] active:scale-[0.96] transition-transform text-sm sm:text-base"
                                 disabled={isProcessingCache}
                             >
                                 {t("invalidateDataCache")}
@@ -129,7 +129,7 @@ const Dashboard = () => {
                             {isLoading ? (
                                 <LogWatcher className="h-[200px] sm:h-[300px]" />
                             ) : (
-                                <div className="w-full overflow-hidden">
+                                <div className="w-full overflow-hidden -mt-8 -ml-0.5">
                                     <BarChartComponent />
                                 </div>
                             )}

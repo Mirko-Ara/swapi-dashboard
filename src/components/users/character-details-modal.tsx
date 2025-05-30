@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {useQuery} from "@tanstack/react-query";
 import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
+import {cn} from "@/lib/utils.ts";
 
 interface CharacterDetailsModalProps {
     character: Person | null;
@@ -55,6 +56,34 @@ const MODAL_HEIGHTS = {
     mobile: 'max-h-[90vh]',
     desktop: 'max-h-[85vh]',
 };
+
+const ICON_MAP = {
+    user: User,
+    calendar: Calendar,
+    ruler: Ruler,
+    eye: Eye,
+    palette: Palette,
+    weight: Weight,
+    home: Home,
+    clapperboard: Clapperboard,
+    car: Car,
+    dna: Dna,
+    rocket: Rocket,
+} as const;
+
+const cardVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: (index: number) =>({
+            duration: 0.3,
+            delay: index * 0.03,
+            ease: "easeOut",
+        })
+    },
+    exit: { opacity: 0, y: -20, scale: 0.95 }
+}
 const fetchWithErrorHandling = async (url: string) => {
     try {
         const res = await fetch(url);
@@ -67,7 +96,32 @@ const fetchWithErrorHandling = async (url: string) => {
         throw error;
     }
 }
-
+const useHomeWorld = (url: string | null) => {
+    const { t } = useTranslation();
+    const [name, setName] = useState<string | null>(null);
+    useEffect(() => {
+        let isMounted = true;
+        const fetchData = async () => {
+            if(!url) {
+                if (isMounted) setName(t("unknown"));
+                return;
+            }
+            try {
+                const data = await fetchWithErrorHandling(String(url));
+                const result = data.result?.properties?.name;
+                if (isMounted) {
+                    setName(result === 'Unknown' ? t("unknown") : result || t("unknown"));
+                }
+            } catch(error) {
+                console.error("Error fetching homeworld:", error, url);
+                if (isMounted) setName(t("unknown"));
+            }
+        }
+        fetchData().catch((error) => console.error("Error fetching homeworld: ", error));
+        return () => { isMounted = false; };
+    }, [url, t])
+    return name;
+}
 const useSwapiInfoDetails = (character: Person | null) => {
     const id = useMemo(() => character?.url.split("/").slice(-1)[0], [character?.url]);
     return useQuery<SwapiInfoExtra>({
@@ -105,24 +159,14 @@ const useSwapiInfoDetails = (character: Person | null) => {
 
 const DetailCard: React.FC<{detail: DetailItem; t: (key: string) => string; index: number }> = React.memo(({ detail, t, index}) => {
     const Icon = detail.icon;
-    const variants = useMemo(() => ({
-        hidden: {opacity: 0, y: 20, scale: 0.95},
-        visible: {
-            opacity: 1,
-            y:0,
-            transition: {
-                duration: 0.3,
-                delay: index * 0.03,
-                ease: "easeOut",
-            }
-        }
-    }), [index]);
 
     return (
         <motion.div
-            variants={variants}
+            custom={index}
+            variants={cardVariants}
             initial="hidden"
             animate="visible"
+            exit="hidden"
         >
             <Card className="group relative overflow-hidden transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 border-0 bg-gradient-to-br from-white/80 to-gray-50/50 dark:from-gray-800/80 dark:to-gray-900/50">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300" />
@@ -153,6 +197,30 @@ const DetailCard: React.FC<{detail: DetailItem; t: (key: string) => string; inde
     );
 });
 
+const ModalShadows = ({ showTop, showBottom, topOpacity, bottomOpacity }: {
+    showTop: boolean;
+    showBottom: boolean;
+    topOpacity: number;
+    bottomOpacity: number;
+}) => {
+    return (
+        <>
+            {showTop && (
+                <div
+                    className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white via-white/90 to-transparent dark:from-gray-900 dark:via-gray-900/90 z-20 pointer-events-none transition-opacity duration-300"
+                    style={{ opacity: topOpacity, transitionDelay: '0.1s'}}
+                />
+            )}
+            {showBottom && (
+                <div
+                    className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-gray-900 dark:via-gray-900/90 z-20 pointer-events-none transition-opacity duration-300"
+                    style={{ opacity: bottomOpacity, transitionDelay: '0.1s' }}
+                />
+            )}
+        </>
+    );
+};
+
 export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDetailsModalProps) => {
     const { t } = useTranslation();
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -160,9 +228,16 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
     const [showBottomShadow, setShowBottomShadow] = useState(false);
     const [topShadowOpacity, setTopShadowOpacity] = useState(0);
     const [bottomShadowOpacity, setBottomShadowOpacity] = useState(0);
-    const [homeworldName, setHomeworldName] = useState<string | null>(null);
     const { favorites } = useFavorites();
     const { data: extra, isLoading: loadingExtra} = useSwapiInfoDetails(character);
+
+    const homeworldName = useHomeWorld(character?.homeworld ?? null);
+    const isFavorite = useMemo(() => {
+        if(!character?.url) return false;
+        const characterId = character.url.split("/").slice(-1)[0];
+        return !!favorites[characterId];
+    }, [character?.url, favorites]);
+
     const handleScroll = useCallback(() => {
         const el = scrollRef.current;
         if (!el) return;
@@ -170,138 +245,122 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
         const scrollBottom = scrollHeight - clientHeight - scrollTop;
         const isScrollable = scrollHeight > clientHeight;
 
-        if (scrollTop === 0) {
+        console.log(
+            'ScrollTop:', el.scrollTop,
+            'ScrollHeight:', el.scrollHeight,
+            'ClientHeight:', el.clientHeight,
+            'In fondo?', el.scrollTop + el.clientHeight >= el.scrollHeight - 1
+        );
+        if (isScrollable && !(scrollTop <= 0)) {
+            setShowTopShadow(true);
+            setTopShadowOpacity(Math.min(1, scrollTop / SHADOW_FADE_ZONE));
+        } else {
             setShowTopShadow(false);
             setTopShadowOpacity(0);
-            setShowBottomShadow(isScrollable);
-            setBottomShadowOpacity(isScrollable ? Math.min(1, scrollBottom / SHADOW_FADE_ZONE) : 0);
-            return;
         }
-
-        const isNotAtTop = scrollTop > 0;
-        const isNotAtBottom = scrollBottom > 0;
-
-        const newTopOpacity = isScrollable && isNotAtTop ? Math.min(1, scrollTop / SHADOW_FADE_ZONE) : 0;
-        setTopShadowOpacity(newTopOpacity);
-        setShowTopShadow(isScrollable && isNotAtTop);
-
-        const newBottomOpacity = isScrollable && isNotAtBottom ? Math.min(1, scrollBottom / SHADOW_FADE_ZONE) : 0;
-        setBottomShadowOpacity(newBottomOpacity);
-        setShowBottomShadow(isScrollable && isNotAtBottom);
+        if (isScrollable && scrollBottom > 0) {
+            setShowBottomShadow(true);
+            setBottomShadowOpacity(Math.min(1, scrollBottom / SHADOW_FADE_ZONE));
+        } else {
+            setShowBottomShadow(false);
+            setBottomShadowOpacity(0);
+        }
     }, []);
 
     useEffect(() => {
         const el = scrollRef.current;
         if (!el) return;
-        const resizeObserver = new ResizeObserver(() => {
-            handleScroll();
-        });
+
+        const handleResizeAndScroll = () => handleScroll();
+        const resizeObserver = new ResizeObserver(handleResizeAndScroll);
         resizeObserver.observe(el);
-        return () => resizeObserver.disconnect();
-    }, [handleScroll]);
 
-    useEffect(() => {
-        let isMounted = true;
-        const fetchHomeWorld = async () => {
-            if (!character?.homeworld) {
-                if (isMounted) setHomeworldName(null);
-                return;
-            }
+        if (isOpen && character) {
+            el.scrollTop = 0;
+            const observer = new MutationObserver(() => {
+                requestAnimationFrame(handleResizeAndScroll);
+            });
+            observer.observe(el, { childList: true, subtree: true });
 
-            try {
-                const data = await fetchWithErrorHandling(String(character.homeworld));
-                console.log("Homeworld response:", data);
-                const name = data.result?.properties?.name;
-                if (isMounted) setHomeworldName(name === 'Unknown' ?  t("unknown") : name || t("unknown"));
-            } catch (error) {
-                console.error("Error fetching homeworld:", error, character.homeworld);
-                if (isMounted) setHomeworldName(t("unknown"));
-            }
-        };
+            const t1 = setTimeout(handleResizeAndScroll, 50);
+            const t2 = setTimeout(handleResizeAndScroll, 300);
 
-        fetchHomeWorld().catch((error) => console.error("Error fetching homeworld: ", error));
-        return () => { isMounted = false; };
-    }, [character, t]);
-
-    useEffect(() => {
-        if(isOpen && character && scrollRef.current) {
-            scrollRef.current.scrollTop = 0;
-            const timeoutId = setTimeout(() => {
-                handleScroll();
-                setTimeout(handleScroll, 150);
-            }, 100);
-            return () => clearTimeout(timeoutId);
+            return () => {
+                resizeObserver.disconnect();
+                observer.disconnect();
+                clearTimeout(t1);
+                clearTimeout(t2);
+            };
         }
+
+        return () => {
+            resizeObserver.disconnect();
+        };
     }, [isOpen, character, handleScroll]);
 
-    const isFavorite = useMemo(() => {
-        if(!character?.url) return false;
-        const characterId = character.url.split("/").slice(-1)[0];
-        return !!favorites[characterId];
-    }, [character?.url, favorites]);
 
     const details: (DetailItem[] | null) = useMemo(() => {
-        if(!character) return null;
+        if (!character) return null;
         const baseDetails: DetailItem[] = [
             {
-                icon: User,
+                icon: ICON_MAP.user,
                 label: t('name'),
                 value: character.name,
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             },
             {
-                icon: Palette,
+                icon: ICON_MAP.palette,
                 label: t('gender'),
-                value: character.gender,
+                value: !character.gender || character.gender === "n/a" || character.gender === "unknown" ? t("unknown") : character.gender === "none" ? t("none") : character.gender,
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             },
             {
-                icon: Calendar,
+                icon: ICON_MAP.calendar,
                 label: t("birthYear"),
-                value: character.birth_year,
+                value: !character.birth_year || character.birth_year === "n/a"  || character.birth_year === "unknown"? t("unknown") : character.birth_year === "none"  ? t("none") : character.birth_year,
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             },
             {
-                icon: Ruler,
+                icon: ICON_MAP.ruler,
                 label: t("height"),
-                value: character.height ? `${character.height} cm` : 'Unknown',
+                value: !character.height || character.height === "n/a" || character.height === "unknown"? t("unknown") : character.height === "none"  ? t("none") : `${character.height} cm`,
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             },
             {
-                icon: Weight,
+                icon: ICON_MAP.weight,
                 label: t("mass"),
-                value: character.mass ? `${character.mass} kg` : 'Unknown',
+                value: !character.mass || character.mass === "n/a" || character.mass === "unknown" ? t("unknown") : character.mass === "none"  ? t("none") : `${character.mass} kg`,
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             },
             {
-                icon: Eye,
+                icon: ICON_MAP.eye,
                 label: t("eyeColor"),
-                value: character.eye_color,
+                value: !character.eye_color || character.eye_color === "n/a" || character.eye_color === "unknown" ? t("unknown") : character.eye_color === "none"  ? t("none") : character.eye_color,
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             },
             {
-                icon: Palette,
+                icon: ICON_MAP.palette,
                 label: t("hairColor"),
-                value: character.hair_color,
+                value: !character.hair_color || character.hair_color === "n/a" || character.hair_color === "unknown" ? t("unknown") : character.hair_color === "none"  ? t("none") : character.hair_color,
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             },
             {
-                icon: Palette,
+                icon: ICON_MAP.palette,
                 label: t("skinColor"),
-                value: character.skin_color,
+                value: !character.skin_color || character.skin_color === "n/a" || character.skin_color === "unknown" ? t("unknown") : character.skin_color === "none"  ? t("none") : character.skin_color,
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             },
             {
-                icon: Home,
+                icon: ICON_MAP.home,
                 label: 'Homeworld',
-                value: homeworldName ??  t("loading"),
+                value: (!homeworldName && homeworldName !== "Unknown"  ? homeworldName : t("unknown")) ?? t("loading"),
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             }
         ];
         if (extra) {
             if (extra?.films && extra.films.length > 0) {
                 baseDetails.push({
-                    icon: Clapperboard,
+                    icon: ICON_MAP.clapperboard,
                     label: t("films"),
                     value: extra.films.map(film => film.title).join(", "),
                     color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
@@ -310,7 +369,7 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
 
             if (extra?.vehicles && extra.vehicles.length > 0) {
                 baseDetails.push({
-                    icon: Car,
+                    icon: ICON_MAP.car,
                     label: t("vehicles"),
                     value: extra.vehicles.map(vehicle => vehicle.name).join(", "),
                     color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
@@ -318,7 +377,7 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
             }
             if (extra?.species && extra.species.length > 0) {
                 baseDetails.push({
-                    icon: Dna,
+                    icon: ICON_MAP.dna,
                     label: t("species"),
                     value: extra.species.map(s => s.name).join(", "),
                     color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
@@ -326,7 +385,7 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
             }
             if (extra?.starships && extra.starships.length > 0) {
                 baseDetails.push({
-                    icon: Rocket,
+                    icon: ICON_MAP.rocket,
                     label: t("starships"),
                     value: extra.starships.map(starship => starship.name).join(", "),
                     color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
@@ -336,7 +395,6 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
 
         return baseDetails;
 
-        // return null;
     }, [character, t, homeworldName, extra]);
 
     if (!details || !character || !isOpen) return null;
@@ -344,86 +402,89 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
 
     return (
         <AnimatePresence>
-            {isOpen && (
-                <Dialog open={isOpen} onOpenChange={onClose}>
-                    <DialogContent
-                        className={`
-                            rounded-3xl
-                            ${MODAL_BREAKPOINTS.sm} ${MODAL_BREAKPOINTS.md} ${MODAL_BREAKPOINTS.lg}
-                            w-full ${MODAL_HEIGHTS.mobile} ${MODAL_HEIGHTS.desktop} my-4
-                            shadow-2xl shadow-black/20 dark:shadow-black/40
-                            bg-gradient-to-br from-white via-white to-gray-50/80
-                            dark:from-gray-900 dark:via-gray-900 dark:to-gray-800/80
-                            backdrop-blur-xl
-                            border border-white/20 dark:border-gray-700/30
-                            overflow-hidden
-                            p-0
-                            animate-in fade-in-0 zoom-in-95 duration-300
-                        `}
+            <Dialog open={isOpen} onOpenChange={(open) => {
+                if(!open) {
+                    onClose();
+                    console.clear();
+                }
+                setShowTopShadow(false);
+            }}>
+                <DialogContent
+                    className={cn(
+                        "rounded-3xl w-full my-4 shadow-2xl shadow-black/20 dark:shadow-black/40",
+                        "bg-gradient-to-br from-white via-white to-gray-50/80 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800/80",
+                        "border border-white/20 dark:border-gray-700/30 overflow-hidden p-0",
+                        "animate-in fade-in-0 zoom-in-95 duration-250 ease-in-out",
+                        MODAL_BREAKPOINTS.sm,
+                        MODAL_BREAKPOINTS.md,
+                        MODAL_BREAKPOINTS.lg,
+                        MODAL_HEIGHTS.mobile,
+                        MODAL_HEIGHTS.desktop
+                    )}
+                >
+                    <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent" />
+                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-blue-500/5 via-transparent to-transparent rounded-full" />
+
+                    <button
+                        onClick={onClose}
+                        className={cn(
+                            "cursor-pointer absolute top-4 right-4 z-30 p-2 rounded-full transition-all duration-200 hover:scale-110 shadow-lg",
+                            "bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700",
+                            "border border-gray-200/50 dark:border-gray-600/50",
+                            "-mt-2 -mr-1"
+                        )}
+                        aria-label={t("closeCharacterDetails")}
                     >
-                        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent" />
-                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-blue-500/5 via-transparent to-transparent rounded-full blur-3xl" />
-                        <button
-                            onClick={onClose}
-                            className="cursor-pointer -mt-2 -mr-1 absolute top-4 right-4 z-30 p-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 hover:scale-110 shadow-lg border border-gray-200/50 dark:border-gray-600/50"
-                            aria-label={t("closeCharacterDetails")}
-                        >
-                            <X className="cursor-pointer h-4 w-4 text-gray-600 dark:text-gray-300" />
-                        </button>
+                        <X className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                    </button>
 
-                        {showTopShadow && (
-                            <div
-                                className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white via-white/90 to-transparent dark:from-gray-900 dark:via-gray-900/90 z-20 pointer-events-none transition-opacity duration-300"
-                                style={{ opacity: topShadowOpacity, transitionDelay: '0.1s'}}
-                            />
-                        )}
-                        {showBottomShadow && (
-                            <div
-                                className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-gray-900 dark:via-gray-900/90 z-20 pointer-events-none transition-opacity duration-300"
-                                style={{ opacity: bottomShadowOpacity, transitionDelay: '0.1s' }}
-                            />
-                        )}
+                    <ModalShadows
+                        showTop={showTopShadow}
+                        showBottom={showBottomShadow}
+                        topOpacity={topShadowOpacity}
+                        bottomOpacity={bottomShadowOpacity}
+                    />
 
-                        <div
-                            ref={scrollRef}
-                            onScroll={handleScroll}
-                            className="max-h-[65vh] sm:max-h-[70vh] md:max-h-[75vh] overflow-y-auto scrollbar-thin scroll-smooth overscroll-contain p-6 sm:p-8 md:p-10 touch-pan-y relative z-10"
-                            style={{
-                                WebkitOverflowScrolling: 'touch',
-                                overscrollBehavior: 'contain'
-                            }}
-                        >
-                            <DialogHeader className="pb-6 mb-6 relative">
-                                <div>
-                                    <DialogTitle className="flex items-center justify-between text-3xl font-bold py-2 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent">
-                                        <span className="flex items-center gap-4">
-                                            {character.name}
-                                            <div className="animate-in zoom-in-0 duration-500">
-                                                <Heart className={`h-6 w-6 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
-                                            </div>
-                                        </span>
-                                    </DialogTitle>
-                                    <DialogDescription className="sr-only">
-                                        {t("characterDetailsDescription", { name: character.name })}
-                                    </DialogDescription>
-                                    <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 rounded-full mt-4 animate-pulse" />
-                                </div>
-                            </DialogHeader>
-
-                            <div className="grid gap-5 mt-6">
-                                {details.map((detail, index) => (
-                                    <DetailCard key={`${detail.label}-${index}`} detail={detail} t={t} index={index} />
-                                ))}
+                    <div
+                        ref={scrollRef}
+                        onScroll={handleScroll}
+                        className="max-h-[65vh] sm:max-h-[70vh] md:max-h-[75vh] overflow-y-auto scrollbar-thin scroll-smooth overscroll-contain p-6 sm:p-8 md:p-10 touch-pan-y relative z-10"
+                        style={{
+                            WebkitOverflowScrolling: 'touch',
+                            overscrollBehavior: 'contain'
+                        }}
+                    >
+                        <DialogHeader className="pb-6 mb-6 relative">
+                            <div>
+                                <DialogTitle className="flex items-center justify-between text-3xl font-bold py-2 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent">
+                                    <span className="flex items-center gap-4">
+                                        {character.name}
+                                        <div className="animate-in zoom-in-0 duration-500">
+                                            <Heart className={`h-6 w-6 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
+                                        </div>
+                                    </span>
+                                </DialogTitle>
+                                <DialogDescription className="sr-only">
+                                    {t("characterDetailsDescription", { name: character.name })}
+                                </DialogDescription>
+                                <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 rounded-full mt-4 animate-pulse" />
                             </div>
-                            {loadingExtra && (
-                                <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 italic">
-                                    <LoaderSpinner size="md" className="flex items-center justify-center p-6" />
-                                </div>
-                            )}
+                        </DialogHeader>
+
+                        <div className="grid gap-5 mt-6">
+                            {details.map((detail, index) => (
+                                <DetailCard key={`${detail.label}-${index}`} detail={detail} t={t} index={index} />
+                            ))}
                         </div>
-                    </DialogContent>
-                </Dialog>
-            )}
+
+                        {loadingExtra && (
+                            <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 italic">
+                                <LoaderSpinner size="md" className="flex items-center justify-center p-6" />
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </AnimatePresence>
     );
 };
