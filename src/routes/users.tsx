@@ -1,4 +1,4 @@
-import {useSwapiPeople} from '../hooks/use-swapi';
+import {useSwapiPeople} from '@/hooks/use-swapi';
 import {UsersTable} from '../components/users/users-table';
 import {LogWatcher} from '@/components/layout/log-watcher';
 import {useTranslation} from 'react-i18next';
@@ -13,11 +13,16 @@ import {Input} from "@/components/ui/input";
 import { CharacterDetailsModal } from '@/components/users/character-details-modal';
 import type {Person} from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { RotateCcw } from "lucide-react";
+import { LoaderSpinner } from "@/components/layout/loader-spinner";
+import {useQueryClient} from "@tanstack/react-query";
 
 const ITEMS_PER_PAGE = 5;
 
 const Users = () => {
-    const {data, isLoading} = useSwapiPeople();
+    const {data, isLoading, isRefetching, totalExpectedCharacters, isLoadingTotalRecords} = useSwapiPeople();
+    const queryClient = useQueryClient();
+
     const {t} = useTranslation();
     const [activeTab, setActiveTab] = useState("all");
     const {favorites, favoritesArray, toggleFavorite, clearAll} = useFavorites();
@@ -26,6 +31,26 @@ const Users = () => {
     const [selectedCharacter, setSelectedCharacter] = useState<Person | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [isProcessingRefetch, setIsProcessingRefetch] = useState(false);
+
+    const shouldShowRefetchButton = useMemo(() => {
+        return !isLoading && !isRefetching && data !== undefined && totalExpectedCharacters !== undefined && totalExpectedCharacters > data.length
+            && !isLoadingTotalRecords;
+    }, [isLoading, isRefetching, data, totalExpectedCharacters, isLoadingTotalRecords]);
+
+    const handleRefetch = useCallback(async () => {
+        setIsProcessingRefetch(true);
+        try {
+            localStorage.removeItem("swapi-people-data");
+            localStorage.removeItem("swapi-people-timestamp");
+            await queryClient.invalidateQueries({ queryKey: ["swapi-people"] });
+            await queryClient.fetchQuery({ queryKey: ["swapi-people"] });
+        } catch(error) {
+            console.error("Error during refetch:", error);
+        } finally {
+            setIsProcessingRefetch(false);
+        }
+    }, [queryClient]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -34,7 +59,8 @@ const Users = () => {
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, [])
+    }, []);
+
     const favoriteUsers = useMemo(() => {
         return data?.filter(user => {
             const id = user.url?.split('/').slice(-1)[0];
@@ -99,12 +125,29 @@ const Users = () => {
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="all" className="mt-6">
-                    {isLoading ? (
+                    {isLoading || isProcessingRefetch ? (
                         <div className="p-4 text-center">
                             <LogWatcher className="h-[300px]"/>
                         </div>
                     ) : (
-                        <UsersTable data={data || []}/>
+                        <>
+                            <UsersTable data={data || []}/>
+                            {shouldShowRefetchButton && (
+                                <div className="mt-6 text-center">
+                                    <Button
+                                        onClick={handleRefetch}
+                                        disabled={isRefetching}
+                                        className="cursor-pointer font-semibold hover:scale-[0.98] active:scale-[0.96] transistion-transform text-sm sm:text-base"
+                                    >
+                                        <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> {t("refetchData")}
+                                        {isRefetching && <LoaderSpinner size="sm" className="ml-2"/>}
+                                    </Button>
+                                    <p className="text-sm font-semibold text-gray-500 mt-2">
+                                        {t("totalRecords", {count: data?.length || 0, total: totalExpectedCharacters })}
+                                    </p>
+                                </div>
+                            )}
+                        </>
                     )}
                 </TabsContent>
 
@@ -165,7 +208,7 @@ const Users = () => {
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="border-none cursor-pointer h-8 -mr-3 -mt-4 px-2 hover:bg-destructive/10 hover:text-destructive transition-all text-xs sm:text-sm sm:px-4 relative z-10"
+                                                    className="border-none cursor-pointer h-8 -mr-3 -mt-4 px-2 hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
                                                     onClick={clearAll}
                                                 >
                                                     {!isMobile ? (<div className="flex items-center gap-1 col-span-2 text-destructive animate-pulse">{t('clearAll')}<Trash2 className="h-4 w-4"/></div>) : <Trash2 className="h-4 w-4 text-destructive animate-pulse"/>}
@@ -260,7 +303,7 @@ const Users = () => {
                                                                             if (id) toggleFavorite(id);
                                                                         }}
                                                                     >
-                                                                        <X className={`h-3.5 w-3.5 ${isMobile ? "text-destructive animate-pulse" : "text-destructive"}`}/>
+                                                                        <X className={`h-3.5 w-3.5 transition duration-300 ease-in-out ${isMobile ? "text-destructive animate-pulse" : "text-destructive"}`}/>
                                                                         <span className="sr-only">{t('removeFromFavorites')}</span>
                                                                     </Button>
                                                                 </div>

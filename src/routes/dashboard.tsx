@@ -4,7 +4,7 @@ import { CityTime } from '../components/dashboard/city-time';
 import PieChartComponent from '../components/dashboard/pie-chart';
 import BarChartComponent from '../components/dashboard/bar-chart';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { useSwapiPeople } from '../hooks/use-swapi';
+import { useSwapiPeople } from '@/hooks/use-swapi';
 import { Button } from "@/components/ui/button";
 import { LogWatcher } from '@/components/layout/log-watcher';
 import { useLogWatcher } from '@/context/loader-watcher-context';
@@ -46,6 +46,7 @@ const Dashboard = () => {
             queryClient.removeQueries({ queryKey: ["swapi-people"] });
             queryClient.removeQueries({ queryKey: ["favorites"] });
             queryClient.removeQueries({ queryKey: ['swapi-info-person'], exact: false });
+            queryClient.removeQueries({ queryKey: ['swapi-people-total-records']});
             localStorage.removeItem("swapi-people-data");
             localStorage.removeItem("swapi-people-timestamp");
             localStorage.removeItem("favorites");

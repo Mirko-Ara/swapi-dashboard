@@ -5,6 +5,10 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            totalRecords: "{{count}} of {{total}} records loaded",
+            refetchData: 'Refetch Data',
+            dataNotLoadedSuccessfully_other: "{{success}} of {{total}} items loaded successfully. {{failed}} total failed. Unloaded pages: {{failedPages}}. Unloaded character details: {{failedDetails}}.",
+            dataNotLoadedSuccessfully_one: "{{success}} of {{total}} item loaded successfully. {{failed}} failed in total. Unloaded page: {{failedPages}}. Unloaded character detail: {{failedDetails}}.",
             species: 'Species',
             starships: 'Starships',
             films: 'Films',
@@ -30,8 +34,8 @@ const resources = {
             male: "male",
             female: "female",
             birthYear: 'Birth Year',
-            ailedCharactersCount_one: "{{count}} character failed to load.",
-            failedCharactersCount_other: "{{count}} characters failed to load.",
+            failedCharactersCount_one: "{{count}} character of page {{page}} failed to load.",
+            failedCharactersCount_other: "{{count}} character of page {{page}} failed to load.",
             errorLoadingDataForPage: "Error loading data for page {{page}}!",
             dataLoadedSuccessfully: 'Data loaded successfully!',
             loadingData: 'Loading data...',
@@ -106,6 +110,10 @@ const resources = {
     },
     it: {
         translation: {
+            totalRecords: "{{count}} di {{total}} record caricati",
+            refetchData: 'Ricarica Dati',
+            dataNotLoadedSuccessfully_other: "{{success}} di {{total}} elementi caricati con successo. {{failed}} falliti in totale. Pagine non caricate: {{failedPages}}. Dettagli personaggi non caricati: {{failedDetails}}.",
+            dataNotLoadedSuccessfully_one: "{{success}} di {{total}} elemento caricato con successo. {{failed}} fallito in totale. Pagine non caricate: {{failedPages}}. Dettagli personaggio non caricati: {{failedDetails}}.",
             species: 'Specie',
             starships: "Navi Stellari",
             films: 'Film',
@@ -131,8 +139,8 @@ const resources = {
             male: "maschio",
             female: "femmina",
             birthYear: 'Anno di nascita',
-            failedCharactersCount_one: "{{count}} personaggio non è stato caricato.",
-            failedCharactersCount_other: "{{count}} personaggi non sono stati caricati.",
+            failedCharactersCount_one: "{{count}} personaggio della pagina {{page]} non è stato caricato.",
+            failedCharactersCount_other: "{{count}} personaggi della pagina {{page}} non sono stati caricati.",
             errorLoadingDataForPage: "Errore durante il caricamento dei dati per la pagina {{page}}!",
             dataLoadedSuccessfully: 'Dati caricati con successo!',
             loadingData: 'Caricamento dati in corso...',
@@ -207,6 +215,10 @@ const resources = {
     },
     es: {
         translation: {
+            totalRecords: "{{count}} de {{total}} registros cargados",
+            refetchData: 'Recargar Datos',
+            dataNotLoadedSuccessfully_other: '{{success}} de {{total}} elementos cargados con éxito. {{failed}} fallidos en total. Páginas no cargadas: {{failedPages}}. Detalles de personajes no cargados: {{failedDetails}}.',
+            dataNotLoadedSuccessfully_one: "{{success}} de {{total}} elemento cargado con éxito. {{failed}} fallido en total. Páginas no cargadas: {{failedPages}}. Detalles de personaje no cargados: {{failedDetails}}.",
             species: 'Especies',
             starships: 'Naves Estelares',
             films: 'Películas',
@@ -232,8 +244,8 @@ const resources = {
             male: "masculino",
             female: "femenino",
             birthYear: 'Año de nacimiento',
-            failedCharactersCount_one: "{{count}} personaje no se pudo cargar.",
-            failedCharactersCount_other: "{{count}} personajes no se pudieron cargar.",
+            failedCharactersCount_one: "{{count}} personaje de página {{page}} no se pudo cargar.",
+            failedCharactersCount_other: "{{count}} personajes de página {{page}} no se pudieron cargar.",
             errorLoadingDataForPage: "Error al cargar los datos para la página {{page}}!",
             dataLoadedSuccessfully: 'Datos cargados con éxito!',
             loadingData: 'Cargando datos...',
