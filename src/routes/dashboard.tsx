@@ -8,10 +8,15 @@ import { useSwapiPeople } from '@/hooks/use-swapi';
 import { Button } from "@/components/ui/button";
 import { LogWatcher } from '@/components/layout/log-watcher';
 import { useLogWatcher } from '@/context/loader-watcher-context';
-import { LoaderSpinner } from "@/components/layout/loader-spinner";
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
+import {RotateCcw} from "lucide-react";
+import {
+    Tooltip,
+    TooltipTrigger,
+    TooltipContent,
+} from "@/components/ui/tooltip";
 
 const CITY_CONFIG = [
     { city: "London", timeZone: "Europe/London", label: "London" },
@@ -47,10 +52,6 @@ const Dashboard = () => {
             queryClient.removeQueries({ queryKey: ["favorites"] });
             queryClient.removeQueries({ queryKey: ['swapi-info-person'], exact: false });
             queryClient.removeQueries({ queryKey: ['swapi-people-total-records']});
-            localStorage.removeItem("swapi-people-data");
-            localStorage.removeItem("swapi-people-timestamp");
-            localStorage.removeItem("favorites");
-            console.clear();
             setCurrentPage(null);
             setFetchingMessage("Refreshing data...");
             await queryClient.invalidateQueries({ queryKey: ["swapi-people"] });
@@ -60,7 +61,10 @@ const Dashboard = () => {
             console.error("Error processing cache:", error);
             setFetchingMessage("Error processing cache");
         } finally {
-            setTimeout(() => setIsProcessingCache(false), 500);
+            setTimeout(() => {
+                setIsProcessingCache(false);
+                console.clear();
+            }, 500);
         }
     }, [queryClient, setCurrentPage, setFetchingMessage]);
 
@@ -74,28 +78,35 @@ const Dashboard = () => {
         <div className="flex flex-col">
             <div className="flex-1 space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center sm:text-left">{t('dashboardPageTitle')}</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center sm:text-left">{t('dashboardPageTitle')}</h2>
 
-                    {hasCache && (
-                        <div className="flex flex-col items-center sm:items-end gap-2">
-                            <Button
-                                variant="outline"
-                                onClick={handleCacheAction}
-                                className="cursor-pointer animate-pulse hover:scale-[0.98] active:scale-[0.96] transition-transform text-sm sm:text-base"
-                                disabled={isProcessingCache}
-                            >
-                                {t("invalidateDataCache")}
-                                {isProcessingCache && <LoaderSpinner size="sm" className="ml-2" />}
-                            </Button>
+                {hasCache && (
+                    <div className="flex flex-col items-center sm:items-end gap-2">
+                        <Tooltip delayDuration={200}>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleCacheAction}
+                                    className="flex items-center gap-2 cursor-pointer transition-transform hover:scale-95 active:scale-90 text-sm sm:text-base rounded-lg px-4 py-2"
+                                    disabled={isProcessingCache}
+                                >
+                                    <RotateCcw className="h-4 w-4 transition-transform duration-300 animate-spin"/>
+                                    {t("invalidateDataCache")}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" sideOffset={8} className="rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-xs">
+                                <p>{t("invalidateAndRefreshDataCache")}</p>
+                            </TooltipContent>
+                        </Tooltip>
 
-                            {formattedLastUpdated && (
-                                <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
-                                    {`${t("lastUpdate")} ${formattedLastUpdated}`}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                </div>
+                        {formattedLastUpdated && (
+                            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
+                                {`${t("lastUpdate")} ${formattedLastUpdated}`}
+                            </p>
+                        )}
+                    </div>
+                )}
+            </div>
 
                 <div className={`grid gap-2 sm:gap-4 ${gridColsClass} sm:grid-cols-2`}>
                     {CITY_CONFIG.map(({ city, timeZone, label }) => (

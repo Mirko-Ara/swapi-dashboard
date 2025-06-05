@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {useForm} from "react-hook-form";
+import shadcnAvatar from '@/images/shadcn.png';
 
 const profileFormSchema = z.object({
    firstName: z.string()
@@ -142,7 +143,7 @@ const Settings = () => {
                                     <CardContent className="space-y-5">
                                         <div className="flex flex-col sm:flex-row items-center gap-4 pb-2">
                                             <Avatar className="h-24 w-24">
-                                                <AvatarImage src="https://github.com/shadcn.png" />
+                                                <AvatarImage src={shadcnAvatar} />
                                                 <AvatarFallback>UN</AvatarFallback>
                                             </Avatar>
                                             <Button variant="outline" size="sm" className="cursor-pointer">{t("changeAvatar")}</Button>

@@ -86,6 +86,7 @@ const cardVariants = {
 }
 const fetchWithErrorHandling = async (url: string) => {
     try {
+        console.log(`Fetching data from URL: ${url}`);
         const res = await fetch(url);
         if (!res.ok) {
             new Error(`Failed to fetch: ${res.statusText}`);
@@ -98,30 +99,26 @@ const fetchWithErrorHandling = async (url: string) => {
 }
 const useHomeWorld = (url: string | null) => {
     const { t } = useTranslation();
-    const [name, setName] = useState<string | null>(null);
-    useEffect(() => {
-        let isMounted = true;
-        const fetchData = async () => {
-            if(!url) {
-                if (isMounted) setName(t("unknown"));
-                return;
+    return useQuery<string | null>({
+        queryKey: ['homeworld', url],
+        queryFn: async () => {
+            if (!url) {
+                return t("unknown");
             }
             try {
-                const data = await fetchWithErrorHandling(String(url));
-                const result = data.result?.properties?.name;
-                if (isMounted) {
-                    setName(result === 'Unknown' ? t("unknown") : result || t("unknown"));
-                }
-            } catch(error) {
+                const data = await fetchWithErrorHandling(url);
+                const name = data.result?.properties?.name;
+                return name === 'Unknown' ? t("unknown") : name || t("unknown");
+            } catch (error) {
                 console.error("Error fetching homeworld:", error, url);
-                if (isMounted) setName(t("unknown"));
+                throw new Error(t("unknown")); // Propaga l'errore per gestione con useQuery
             }
-        }
-        fetchData().catch((error) => console.error("Error fetching homeworld: ", error));
-        return () => { isMounted = false; };
-    }, [url, t])
-    return name;
-}
+        },
+        enabled: !!url,
+        // staleTime, gcTime, retry, retryDelay sono ereditati dai defaultOptions in main.tsx
+    });
+};
+
 const useSwapiInfoDetails = (character: Person | null) => {
     const id = useMemo(() => character?.url.split("/").slice(-1)[0], [character?.url]);
     return useQuery<SwapiInfoExtra>({
@@ -168,10 +165,10 @@ const DetailCard: React.FC<{detail: DetailItem; t: (key: string) => string; inde
             animate="visible"
             exit="hidden"
         >
-            <Card className="group relative overflow-hidden transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 border-0 bg-gradient-to-br from-white/80 to-gray-50/50 dark:from-gray-800/80 dark:to-gray-900/50">
+            <Card className="group relative overflow-hidden backdrop-blur-0 transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 border-transparent dark:border-gray-700 bg-white dark:bg-gray-900">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300" />
                 <CardHeader className="pb-3 relative z-10">
-                    <CardTitle className="text-sm font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                    <CardTitle className="text-sm font-bold font-sans italic text-gray-600 dark:text-gray-300 flex items-center gap-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                         <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-all duration-300 group-hover:scale-110">
                             <Icon className={`h-${ICON_SIZE} w-${ICON_SIZE} text-blue-600 dark:text-blue-400`}/>
                         </div>
@@ -230,8 +227,8 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
     const [bottomShadowOpacity, setBottomShadowOpacity] = useState(0);
     const { favorites } = useFavorites();
     const { data: extra, isLoading: loadingExtra} = useSwapiInfoDetails(character);
+    const { data: homeworldName, isLoading: homeworldLoading } = useHomeWorld(character?.homeworld ?? null);
 
-    const homeworldName = useHomeWorld(character?.homeworld ?? null);
     const isFavorite = useMemo(() => {
         if(!character?.url) return false;
         const characterId = character.url.split("/").slice(-1)[0];
@@ -244,13 +241,12 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
         const { scrollTop, scrollHeight, clientHeight } = el;
         const scrollBottom = scrollHeight - clientHeight - scrollTop;
         const isScrollable = scrollHeight > clientHeight;
-
-        console.log(
-            'ScrollTop:', el.scrollTop,
-            'ScrollHeight:', el.scrollHeight,
-            'ClientHeight:', el.clientHeight,
-            'In fondo?', el.scrollTop + el.clientHeight >= el.scrollHeight - 1
-        );
+        // console.log(
+        //     'ScrollTop:', el.scrollTop,
+        //     'ScrollHeight:', el.scrollHeight,
+        //     'ClientHeight:', el.clientHeight,
+        //     'In fondo?', el.scrollTop + el.clientHeight >= el.scrollHeight - 1
+        // );
         if (isScrollable && !(scrollTop <= 0)) {
             setShowTopShadow(true);
             setTopShadowOpacity(Math.min(1, scrollTop / SHADOW_FADE_ZONE));
@@ -353,7 +349,7 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
             {
                 icon: ICON_MAP.home,
                 label: 'Homeworld',
-                value: (!homeworldName && homeworldName !== "Unknown"  ? homeworldName : t("unknown")) ?? t("loading"),
+                value: homeworldLoading ? t("loading") : homeworldName ?? null,
                 color: 'bg-gray-500/10 text-gray-800 dark:text-gray-200'
             }
         ];
@@ -395,7 +391,7 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
 
         return baseDetails;
 
-    }, [character, t, homeworldName, extra]);
+    }, [character, t, homeworldName, homeworldLoading, extra]);
 
     if (!details || !character || !isOpen) return null;
 

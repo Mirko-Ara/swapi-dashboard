@@ -10,7 +10,7 @@ export default function NotFound() {
     const location = useLocation();
     const [ redirecting, setRedirecting] = useState<boolean>(false);
     const { t } = useTranslation();
-    const protectedRoutes = ["/dashboard", "/users", "/settings"];
+    const protectedRoutes = ["/dashboard", "/characters", "/settings"];
     const triedToAccessProtectedRoute = protectedRoutes.some((route) => location.pathname.startsWith(route));
 
     useEffect(() => {

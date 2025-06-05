@@ -1,15 +1,15 @@
 import type { FilterFn } from '@tanstack/react-table';
 import { columns } from './columns';
-import type { Person } from '@/types';
+import type { Starship } from '@/types';
 import { useState } from 'react';
 import { LogWatcher } from '@/components/layout/log-watcher';
-import { CharacterDetailsModal } from './character-details-modal';
 import { useTranslation } from 'react-i18next';
 import { DataTable } from '@/components/data-table';
+import {StarshipDetailsModal} from "@/components/starships/starship-details-modal";
 
-const globalFilterFn: FilterFn<Person> = (row, _columnId, filterValue) => {
+const globalFilterFn: FilterFn<Starship> = (row, _columnId, filterValue) => {
     const filter = String(filterValue).toLowerCase().trim();
-    const { name, gender, birth_year, height } = row.original;
+    const { name, model, manufacturer, cargo_capacity } = row.original;
 
     const startsWith = (val: string | number | null | undefined) => {
         if (val == null) return false;
@@ -18,30 +18,30 @@ const globalFilterFn: FilterFn<Person> = (row, _columnId, filterValue) => {
 
     return (
         startsWith(name) ||
-        startsWith(gender) ||
-        startsWith(birth_year) ||
-        startsWith(height)
+        startsWith(model) ||
+        startsWith(manufacturer) ||
+        startsWith(cargo_capacity)
     );
 };
 
-interface UsersTableProps {
-    data: Person[];
+interface StarshipsTableProps {
+    data: Starship[];
     isLoading?: boolean;
 }
 
-export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
-    const [selectedCharacter, setSelectedCharacter] = useState<Person | null>(null);
+export const StarshipsTable = ({ data, isLoading = false }: StarshipsTableProps) => {
+    const [selectedStarship, setSelectedStarship] = useState<Starship | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { t } = useTranslation();
 
-    const handleRowClick = (character: Person) => {
-        setSelectedCharacter(character);
+    const handleRowClick = (starship: Starship) => {
+        setSelectedStarship(starship);
         setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setSelectedCharacter(null);
+        setSelectedStarship(null);
     }
 
     if (isLoading) {
@@ -54,16 +54,16 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
 
     return (
         <>
-            <DataTable<Person>
+            <DataTable<Starship>
                 data={data}
                 columns={columns}
                 globalFilterFn={globalFilterFn}
-                filterPlaceholder={t('filterPlaceholder')}
+                filterPlaceholder={t('filterStarshipsPlaceholder')}
                 onRowClick={handleRowClick}
-                clickDetailsTooltip={t('clickToViewDetails')}
+                clickDetailsTooltip={t('clickToViewStarshipDetails')}
             />
-            <CharacterDetailsModal
-                character={selectedCharacter}
+            <StarshipDetailsModal
+                starship={selectedStarship}
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
             />

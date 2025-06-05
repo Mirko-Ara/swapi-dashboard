@@ -10,37 +10,43 @@ import Settings from "./routes/settings"
 import App from "./App"
 import NotFound from "./components/not-found"
 import { ProtectedRoute } from "./components/protected-route"
-
+import { Starships } from "./routes/starships";
 // Root Route
 const rootRoute = createRootRoute({
     component: App,
     notFoundComponent: NotFound,
-})
+});
 
 // Public route: login
 const loginRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/login",
     component: Login,
-})
+});
 
 // Protected routes
 const dashboardRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/dashboard",
     component: ProtectedRoute(Dashboard),
-})
+});
 
 const usersRoute = createRoute({
     getParentRoute: () => rootRoute,
-    path: "/users",
+    path: "/characters",
     component: ProtectedRoute(Users),
-})
+});
 
 const settingsRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/settings",
     component: ProtectedRoute(Settings),
+});
+
+const starshipsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/starships",
+    component: ProtectedRoute(Starships),
 })
 
 const routeTree = rootRoute.addChildren([
@@ -48,6 +54,7 @@ const routeTree = rootRoute.addChildren([
     dashboardRoute,
     usersRoute,
     settingsRoute,
+    starshipsRoute,
 ])
 
 // Create router

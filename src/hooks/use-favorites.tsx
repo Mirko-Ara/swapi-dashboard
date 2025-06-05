@@ -8,14 +8,6 @@ export function useFavorites() {
     const { data: favorites = {} } = useQuery<Record<string, boolean>>({
         queryKey: FAVORITES_QUERY_KEY,
         queryFn: async () => {
-            const stored = localStorage.getItem('favorites');
-            if (stored) {
-                try {
-                    return JSON.parse(stored);
-                } catch (e) {
-                    console.error("Error parsing favorites from localStorage", e);
-                }
-            }
             return {};
         },
         staleTime: Infinity,
@@ -24,7 +16,6 @@ export function useFavorites() {
 
     const mutation = useMutation({
         mutationFn: async (newFavorites: Record<string, boolean>) => {
-            localStorage.setItem('favorites', JSON.stringify(newFavorites));
             return newFavorites;
         },
         onSuccess: (data) => {

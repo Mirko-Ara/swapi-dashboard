@@ -14,15 +14,13 @@ import { CharacterDetailsModal } from '@/components/users/character-details-moda
 import type {Person} from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { RotateCcw } from "lucide-react";
-import { LoaderSpinner } from "@/components/layout/loader-spinner";
 import {useQueryClient} from "@tanstack/react-query";
-
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 const ITEMS_PER_PAGE = 5;
 
 const Users = () => {
     const {data, isLoading, isRefetching, totalExpectedCharacters, isLoadingTotalRecords} = useSwapiPeople();
     const queryClient = useQueryClient();
-
     const {t} = useTranslation();
     const [activeTab, setActiveTab] = useState("all");
     const {favorites, favoritesArray, toggleFavorite, clearAll} = useFavorites();
@@ -34,21 +32,25 @@ const Users = () => {
     const [isProcessingRefetch, setIsProcessingRefetch] = useState(false);
 
     const shouldShowRefetchButton = useMemo(() => {
-        return !isLoading && !isRefetching && data !== undefined && totalExpectedCharacters !== undefined && totalExpectedCharacters > data.length
-            && !isLoadingTotalRecords;
+        return !isLoading && !isRefetching && data !== undefined && totalExpectedCharacters !== undefined && !isLoadingTotalRecords;
     }, [isLoading, isRefetching, data, totalExpectedCharacters, isLoadingTotalRecords]);
 
     const handleRefetch = useCallback(async () => {
         setIsProcessingRefetch(true);
         try {
-            localStorage.removeItem("swapi-people-data");
-            localStorage.removeItem("swapi-people-timestamp");
+            queryClient.removeQueries({queryKey: ["swapi-people"]});
+            queryClient.removeQueries({queryKey: ["favorites"]});
+            queryClient.removeQueries({ queryKey: ["swapi-people-total-records"] });
+            queryClient.removeQueries({ queryKey: ['swapi-info-person'], exact: false });
             await queryClient.invalidateQueries({ queryKey: ["swapi-people"] });
             await queryClient.fetchQuery({ queryKey: ["swapi-people"] });
         } catch(error) {
             console.error("Error during refetch:", error);
         } finally {
-            setIsProcessingRefetch(false);
+            setTimeout(() => {
+                setIsProcessingRefetch(false);
+                console.clear();
+            }, 500);
         }
     }, [queryClient]);
 
@@ -134,17 +136,22 @@ const Users = () => {
                             <UsersTable data={data || []}/>
                             {shouldShowRefetchButton && (
                                 <div className="mt-6 text-center">
-                                    <Button
-                                        onClick={handleRefetch}
-                                        disabled={isRefetching}
-                                        className="cursor-pointer font-semibold hover:scale-[0.98] active:scale-[0.96] transistion-transform text-sm sm:text-base"
-                                    >
-                                        <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> {t("refetchData")}
-                                        {isRefetching && <LoaderSpinner size="sm" className="ml-2"/>}
-                                    </Button>
-                                    <p className="text-sm font-semibold text-gray-500 mt-2">
-                                        {t("totalRecords", {count: data?.length || 0, total: totalExpectedCharacters })}
-                                    </p>
+                                    <Tooltip delayDuration={200}>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                onClick={handleRefetch}
+                                                className="cursor-pointer font-semibold hover:scale-[0.98] active:scale-[0.96] transistion-transform text-sm sm:text-base"
+                                            >
+                                                <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> {t("refetchData")}
+                                            </Button>
+                                        </TooltipTrigger>
+                                            <p className="text-sm font-semibold text-gray-500 mt-2">
+                                                {t("totalRecords", {count: data?.length || 0, total: totalExpectedCharacters })}
+                                            </p>
+                                        <TooltipContent side="top" sideOffset={8} className="rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-xs">
+                                            <p>{t("refetchDataTooltip")}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
                                 </div>
                             )}
                         </>
@@ -211,7 +218,7 @@ const Users = () => {
                                                     className="border-none cursor-pointer h-8 -mr-3 -mt-4 px-2 hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
                                                     onClick={clearAll}
                                                 >
-                                                    {!isMobile ? (<div className="flex items-center gap-1 col-span-2 text-destructive animate-pulse">{t('clearAll')}<Trash2 className="h-4 w-4"/></div>) : <Trash2 className="h-4 w-4 text-destructive animate-pulse"/>}
+                                                    {!isMobile ? (<div className="flex items-center gap-1 col-span-2 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100">{t('clearAll')}<Trash2 className="h-4 w-4 hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100"/></div>) : <Trash2 className="h-4 w-4 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100"/>}
                                                 </Button>
                                             )}
                                         </div>
@@ -219,8 +226,8 @@ const Users = () => {
                                     </CardHeader>
 
                                     {favoritesArray.length === 0 ? (
-                                        <CardContent className="py-4 text-center text-muted-foreground border-t relative z-10">
-                                            {t('noFavorites')}
+                                        <CardContent className="flex items-center justify-center p-6 text-center border-t">
+                                            <p className="text-lg font-semibold text-gray-500 dark:text-gray-400">{t('noFavorites')}</p>
                                         </CardContent>
                                     ) : (
                                         <>
@@ -296,7 +303,7 @@ const Users = () => {
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="sm"
-                                                                        className="cursor-pointer h-7 w-7 p-0 opacity-70 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all relative z-10"
+                                                                        className="cursor-pointer h-7 w-7 p-0 opacity-70 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100 relative z-10"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             const id = person.url?.split('/').slice(-1)[0];

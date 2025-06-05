@@ -15,3 +15,15 @@ export interface Person {
     vehicles?: string[];
     starships?: string[];
 }
+
+export interface Starship {
+    name: string,
+    cargo_capacity: string,
+    passengers: string,
+    max_atmosphering_speed: string,
+    model: string,
+    manufacturer: string,
+    pilots?: string[],
+    films?: string[],
+    url: string
+}

@@ -2,12 +2,11 @@
 import { ThemeSwitcher } from '@/providers/theme-switcher';
 import { Link, useRouter } from "@tanstack/react-router"
 import { Button } from "../ui/button"
-import { LayoutDashboard, Users, Settings, Menu, LogOut, Globe } from "lucide-react"
+import { LayoutDashboard, Users, Settings, Rocket, Menu, LogOut, Globe } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import { useAuth } from "@/providers/theme-hooks"
 import { LoaderSpinner } from "@/components/layout/loader-spinner";
 import { useTranslation } from 'react-i18next';
-
 
 export const Sidebar = ({ onToggle }: { onToggle?: (open: boolean) => void }) => {
     const router = useRouter();
@@ -129,22 +128,31 @@ export const Sidebar = ({ onToggle }: { onToggle?: (open: boolean) => void }) =>
                                 {t('dashboard')}
                             </Link>
                             <Link
-                                to="/users"
+                                to="/characters"
                                 className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary
-                                ${currentPath === "/users" ? "bg-muted text-primary" : "text-muted-foreground"}`}
+                                ${currentPath === "/characters" ? "bg-muted text-primary" : "text-muted-foreground"}`}
                                 onClick={() => setMobileToggle(false)}
                             >
                                 <Users className="h-4 w-4" />
-                                {t('users')}
+                                {t('characters')}
                             </Link>
                             <Link
                                 to="/settings"
-                                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary mb-2
+                                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary
                                 ${currentPath === "/settings" ? "bg-muted text-primary" : "text-muted-foreground"}`}
                                 onClick={() => setMobileToggle(false)}
                             >
                                 <Settings className="h-4 w-4" />
                                 {t('settings')}
+                            </Link>
+                            <Link
+                                to="/starships"
+                                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary mb-2
+                                ${currentPath === "/starships " ? "bg-muted text-primary" : "text-muted-foreground"}`}
+                                onClick={() => setMobileToggle(false)}
+                            >
+                                <Rocket className="h-4 w-4" />
+                                {t("starships")}
                             </Link>
                             <ThemeSwitcher/>
                         </nav>

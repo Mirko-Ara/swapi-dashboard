@@ -1,6 +1,6 @@
 import {useQuery} from "@tanstack/react-query";
-import type { Person } from "@/types";
-import { toast } from "sonner";
+import type {Person} from "@/types";
+import {toast} from "sonner";
 import i18n from "@/i18n";
 import {useEffect} from "react";
 
@@ -19,7 +19,7 @@ interface SwapiDetailResponse {
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-export const fetchTotalExpectedCharacters = async (): Promise<number> => {
+const fetchTotalExpectedCharacters = async (): Promise<number> => {
     try{
         const response = await fetch("https://www.swapi.tech/api/people");
         if(!response.ok) {
@@ -52,7 +52,7 @@ const fetchTotalPagesFetch = async (): Promise<number | null> => {
     }
 };
 
-const fetchWithRetry = async (
+export const fetchWithRetry = async (
     url: string,
     retries = 3,
     delay = 2000
@@ -202,29 +202,7 @@ const fetchAllPeople = async (): Promise<Person[]> => {
 };
 
 export function useSwapiPeople() {
-    const getCachedPeopleData = (): Person[] | undefined => {
-        const cachedData = localStorage.getItem("swapi-people-data");
-        const cachedTimestamp = localStorage.getItem("swapi-people-timestamp");
-        const cacheDuration = 1000 * 60 * 60 * 2; // 2 hours
-
-        if (cachedData && cachedTimestamp && (Date.now() - parseInt(cachedTimestamp, 10) < cacheDuration)) {
-            try {
-                const parsedData = JSON.parse(cachedData) as Person[];
-                console.log("Utilizing cached data from localStorage for initial state.");
-                return parsedData;
-            } catch (e) {
-                console.error("Error parsing cached data from localStorage:", e);
-                localStorage.removeItem("swapi-people-data");
-                localStorage.removeItem("swapi-people-timestamp");
-                return undefined;
-            }
-        }
-        return undefined;
-    };
-
-    const initialDataFromCache = getCachedPeopleData();
-
-    const { data, isLoading, error, refetch, isRefetching, isSuccess, isError } = useQuery<Person[], Error, Person[], ["swapi-people"]>({
+    const { data, isLoading, error, refetch, isRefetching, isError } = useQuery<Person[], Error, Person[], ["swapi-people"]>({
         queryKey: ["swapi-people"],
         queryFn: fetchAllPeople,
         staleTime: Infinity,
@@ -232,26 +210,14 @@ export function useSwapiPeople() {
         retry: 2,
         retryDelay: 1000,
         refetchOnWindowFocus: false,
-        initialData: initialDataFromCache,
-        initialDataUpdatedAt: initialDataFromCache ? Date.now() : undefined,
     });
-
-    useEffect(() => {
-        if (isSuccess && data) {
-            try {
-                localStorage.setItem("swapi-people-data", JSON.stringify(data));
-                localStorage.setItem("swapi-people-timestamp", Date.now().toString());
-            } catch (e) {
-                console.error("Error saving data to localStorage:", e);
-            }
-        }
-    }, [isSuccess, data]);
 
     useEffect(() => {
         if(isError && error) {
             console.error("Error fetching SWAPI people data:", error);
         }
-    }, [isError, error])
+    }, [isError, error]);
+
     const { data: totalRecordsData, isLoading: isLoadingTotalRecords } = useQuery<number, Error, number, ["swapi-people-total-records"]>({
         queryKey: ["swapi-people-total-records"],
         queryFn: fetchTotalExpectedCharacters,
