@@ -6,6 +6,7 @@ import { LogWatcher } from '@/components/layout/log-watcher';
 import { CharacterDetailsModal } from './character-details-modal';
 import { useTranslation } from 'react-i18next';
 import { DataTable } from '@/components/data-table';
+import { usePeopleLogWatcher } from '@/context/log-watcher-instances';
 
 const globalFilterFn: FilterFn<Person> = (row, _columnId, filterValue) => {
     const filter = String(filterValue).toLowerCase().trim();
@@ -47,7 +48,7 @@ export const UsersTable = ({ data, isLoading = false }: UsersTableProps) => {
     if (isLoading) {
         return (
             <div className="space-y-4">
-                <LogWatcher className="h-[400px]" />
+                <LogWatcher className="h-[400px]" useWatcherHook={usePeopleLogWatcher}/>
             </div>
         );
     }

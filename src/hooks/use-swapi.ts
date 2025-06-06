@@ -145,17 +145,18 @@ const fetchAllPeople = async (): Promise<Person[]> => {
 
     while (page <= totalPages) {
         const currentUrl= `https://www.swapi.tech/api/people?page=${page}&limit=10`;
-        const pageInfo = `SWAPI_FETCH_PAGE:${page}:${totalPages}`;
+        const pageInfo = `SWAPI_FETCH_PAGE:PEOPLE:${page}:${totalPages}`;
         console.log(pageInfo, currentUrl);
         toast(i18n.t("fetchingPage", {
             page: page,
+            type: i18n.t("characters"),
             total: totalPages,
         }));
 
         const listResp = await fetchWithRetry(currentUrl);
         if (!listResp) {
-            toast.warning(i18n.t("errorLoadingDataForPage", { page }));
-            console.warn(`Page ${page} failed. Attempting next page...`);
+            toast.warning(i18n.t("errorLoadingDataPeopleForPage", { page }));
+            console.warn(`Characters Page ${page} failed. Attempting next page...`);
             totalFailedPageListFetches++;
             page++;
             await sleep(delayBetweenPages);
@@ -186,7 +187,7 @@ const fetchAllPeople = async (): Promise<Person[]> => {
     }
     const totalActualFailedCharacters = Math.max(0, totalExpectedCharacters - allPeople.length);
     if (totalActualFailedCharacters > 0) {
-        const translationKey = totalActualFailedCharacters === 1 ? "dataNotLoadedSuccessfully_one" : "dataNotLoadedSuccessfully_other";
+        const translationKey = totalActualFailedCharacters === 1 ? "dataPeopleNotLoadedSuccessfully_one" : "dataPeopleNotLoadedSuccessfully_other";
         toast.error(i18n.t(translationKey, {
                 failed: totalActualFailedCharacters,
                 total: totalExpectedCharacters,
@@ -196,7 +197,7 @@ const fetchAllPeople = async (): Promise<Person[]> => {
             })
         );
     } else {
-        toast.success(i18n.t("dataLoadedSuccessfully"));
+        toast.success(i18n.t("dataPeopleLoadedSuccessfully"));
     }
     return allPeople;
 };

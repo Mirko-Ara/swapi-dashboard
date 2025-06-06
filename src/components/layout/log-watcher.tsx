@@ -1,11 +1,16 @@
 "use client"
 import { LoaderSpinner } from "@/components/layout/loader-spinner";
 import { Card } from "@/components/ui/card";
-import {useLogWatcher} from "@/context/loader-watcher-context";
 import { useTranslation } from 'react-i18next';
 import {useEffect, useState} from "react";
+import type { LogWatcherContextType } from '@/context/create-log-watcher-context';
 
-export const LogWatcher = ({ className = ""}: { className?: string}) => {
+interface LogWatcherProps {
+    className?: string,
+    useWatcherHook: () => LogWatcherContextType;
+}
+
+export const LogWatcher = ({ className = "", useWatcherHook}: LogWatcherProps) => {
     const { t } = useTranslation();
     const [deviceType, setDeviceType] = useState<"smallMobile" | "mobile" | "tablet" | "desktop">("desktop");
 
@@ -23,12 +28,13 @@ export const LogWatcher = ({ className = ""}: { className?: string}) => {
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    const { currentPage, fetchingMessage } = useLogWatcher();
+    const { currentPage, totalPages, fetchingMessage } = useWatcherHook();
+
     return (
         <Card className={`flex flex-col items-center justify-center p-8 ${className}`}>
             <LoaderSpinner size={deviceType === "smallMobile" ? "md" : deviceType === "mobile" ? "md" : deviceType === "tablet" ? "lg" : "xl"} className="mb-4"/>
             <p className="text-center text-muted-foreground mt-4">
-                {currentPage !== null ? fetchingMessage : t("loadingData")}
+                {currentPage === null || totalPages === null ? t("loadingData") : fetchingMessage}
             </p>
         </Card>
     );

@@ -7,16 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useSwapiPeople } from '@/hooks/use-swapi';
 import { Button } from "@/components/ui/button";
 import { LogWatcher } from '@/components/layout/log-watcher';
-import { useLogWatcher } from '@/context/loader-watcher-context';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import {RotateCcw} from "lucide-react";
+import { usePeopleLogWatcher } from '@/context/log-watcher-instances';
 import {
     Tooltip,
     TooltipTrigger,
     TooltipContent,
 } from "@/components/ui/tooltip";
+import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
 
 const CITY_CONFIG = [
     { city: "London", timeZone: "Europe/London", label: "London" },
@@ -38,35 +39,35 @@ const gridColsClass = gridColsClassMap[CITY_CONFIG.length] || "md:grid-cols-1";
 
 const Dashboard = () => {
     const [isProcessingCache, setIsProcessingCache] = useState(false);
+    const [cacheMessage, setCacheMessage] = useState<string | null>(null);
     const { isLoading } = useSwapiPeople();
     const queryClient = useQueryClient();
-    const { setCurrentPage, setFetchingMessage } = useLogWatcher();
     const { t } = useTranslation();
 
     const handleCacheAction = useCallback(async (): Promise<void> => {
         setIsProcessingCache(true);
-        setFetchingMessage("Processing cache...");
-
+        setCacheMessage(t("processingCache"));
         try {
             queryClient.removeQueries({ queryKey: ["swapi-people"] });
             queryClient.removeQueries({ queryKey: ["favorites"] });
             queryClient.removeQueries({ queryKey: ['swapi-info-person'], exact: false });
             queryClient.removeQueries({ queryKey: ['swapi-people-total-records']});
-            setCurrentPage(null);
-            setFetchingMessage("Refreshing data...");
+            queryClient.removeQueries({ queryKey: ['homeworld'], exact: false });
+            setCacheMessage(t("refreshingDataCache"));
             await queryClient.invalidateQueries({ queryKey: ["swapi-people"] });
             await queryClient.fetchQuery({ queryKey: ["swapi-people"] });
-            setFetchingMessage("Data loaded successfully!");
+            setCacheMessage(t("dataCacheRefreshed"));
+            setCacheMessage(t("errorProcessingCache"));
         } catch (error) {
             console.error("Error processing cache:", error);
-            setFetchingMessage("Error processing cache");
         } finally {
             setTimeout(() => {
                 setIsProcessingCache(false);
+                setCacheMessage(null);
                 console.clear();
             }, 500);
         }
-    }, [queryClient, setCurrentPage, setFetchingMessage]);
+    }, [queryClient, t]);
 
     const hasCache = queryClient.getQueryData(["swapi-people"]) !== undefined;
     const lastUpdated = queryClient.getQueryState(["swapi-people"])?.dataUpdatedAt;
@@ -124,11 +125,20 @@ const Dashboard = () => {
                         </CardHeader>
                         <CardContent className="p-2 sm:p-6">
                             {isLoading ? (
-                                <LogWatcher className="h-[200px] sm:h-[300px]" />
+                                <LogWatcher className="h-[200px] sm:h-[300px]" useWatcherHook={usePeopleLogWatcher}/>
                             ) : (
-                                <div className="w-full overflow-hidden -mt-15 -ml-0.5">
-                                    <PieChartComponent />
-                                </div>
+                                isProcessingCache ? (
+                                    <div className="flex flex-col items-center justify-center h-[200px] sm:h-[300px]">
+                                        <LoaderSpinner size="lg" className="mb-4"/>
+                                        <p className="text-center text-muted-foreground mt-4">
+                                            {cacheMessage}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="w-full overflow-hidden -mt-15 -ml-0.5">
+                                        <PieChartComponent />
+                                    </div>
+                                )
                             )}
                         </CardContent>
                     </Card>
@@ -139,11 +149,20 @@ const Dashboard = () => {
                         </CardHeader>
                         <CardContent className="p-2 sm:p-6">
                             {isLoading ? (
-                                <LogWatcher className="h-[200px] sm:h-[300px]" />
+                                <LogWatcher className="h-[200px] sm:h-[300px]" useWatcherHook={usePeopleLogWatcher}/>
                             ) : (
-                                <div className="w-full overflow-hidden -mt-8 -ml-0.5">
-                                    <BarChartComponent />
-                                </div>
+                                isProcessingCache ? (
+                                    <div className="flex flex-col items-center justify-center h-[200px] sm:h-[300px]">
+                                        <LoaderSpinner size="lg" className="mb-4"/>
+                                        <p className="text-center text-muted-foreground mt-4">
+                                            {cacheMessage}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="w-full overflow-hidden -mt-8 -ml-0.5">
+                                        <BarChartComponent />
+                                    </div>
+                                )
                             )}
                         </CardContent>
                     </Card>

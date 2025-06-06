@@ -8,6 +8,7 @@ import {Button} from "@/components/ui/button.tsx";
 import {RotateCcw} from "lucide-react";
 import {useQueryClient} from "@tanstack/react-query";
 import i18n from "i18next";
+import { useStarshipsLogWatcher } from '@/context/log-watcher-instances';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const formatNumberForDisplay = (value: string | number | undefined | null, locale: string): string => {
@@ -91,7 +92,7 @@ export const Starships = () => {
             </div>
 
             {isLoading || isProcessingRefetch ? (
-                <LogWatcher className="h-[300px]" />
+                <LogWatcher className="h-[300px]" useWatcherHook={useStarshipsLogWatcher}/>
             ) : (
                 <>
                     <StarshipsTable data={newData || []} />

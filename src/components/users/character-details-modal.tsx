@@ -89,7 +89,7 @@ const fetchWithErrorHandling = async (url: string) => {
         console.log(`Fetching data from URL: ${url}`);
         const res = await fetch(url);
         if (!res.ok) {
-            new Error(`Failed to fetch: ${res.statusText}`);
+            throw new Error(`Failed to fetch: ${res.statusText}`);
         }
         return await res.json();
     } catch(error) {
@@ -115,7 +115,8 @@ const useHomeWorld = (url: string | null) => {
             }
         },
         enabled: !!url,
-        // staleTime, gcTime, retry, retryDelay sono ereditati dai defaultOptions in main.tsx
+        staleTime: Infinity,
+        gcTime: Infinity,
     });
 };
 
@@ -129,7 +130,14 @@ const useSwapiInfoDetails = (character: Person | null) => {
             }
             const fetchDataFromUrls = async (urls: string[]) => {
                 return Promise.all(
-                    urls.map(async (url) => await fetchWithErrorHandling(url)));
+                    urls.map(async (url) => {
+                        try {
+                             return await fetchWithErrorHandling(url)
+                        } catch(error) {
+                            console.error(`Error fetching data from URL: ${url}: ${error}`);
+                            return null;
+                        }
+                    }));
             };
 
             const res = await fetch(`https://swapi.py4e.com/api/people/${id}/`);
@@ -142,10 +150,10 @@ const useSwapiInfoDetails = (character: Person | null) => {
             const starships = await fetchDataFromUrls(person.starships || []);
 
             return {
-                films: films.map(film => ({ title: film.title})),
-                species: species.map(s => ({ name: s.name})),
-                vehicles: vehicles.map(v => ({ name: v.name})),
-                starships: starships.map(starship => ({name: starship.name})),
+                films: films.filter(film => film !== null).map(film => ({ title: film.title})),
+                species: species.filter(s => s !== null).map(s => ({ name: s.name})),
+                vehicles: vehicles.filter(vehicle => vehicle !== null).map(v => ({ name: v.name})),
+                starships: starships.filter(starship => starship !== null).map(starship => ({name: starship.name})),
             }
         },
         enabled: !!id && !!character,
@@ -165,7 +173,7 @@ const DetailCard: React.FC<{detail: DetailItem; t: (key: string) => string; inde
             animate="visible"
             exit="hidden"
         >
-            <Card className="group relative overflow-hidden backdrop-blur-0 transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 border-transparent dark:border-gray-700 bg-white dark:bg-gray-900">
+            <Card className="group relative overflow-hidden transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 border-transparent bg-white dark:bg-gray-900">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300" />
                 <CardHeader className="pb-3 relative z-10">
                     <CardTitle className="text-sm font-bold font-sans italic text-gray-600 dark:text-gray-300 flex items-center gap-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
@@ -247,7 +255,7 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
         //     'ClientHeight:', el.clientHeight,
         //     'In fondo?', el.scrollTop + el.clientHeight >= el.scrollHeight - 1
         // );
-        if (isScrollable && !(scrollTop <= 0)) {
+        if (isScrollable && scrollTop > 0) {
             setShowTopShadow(true);
             setTopShadowOpacity(Math.min(1, scrollTop / SHADOW_FADE_ZONE));
         } else {
@@ -267,30 +275,43 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
         const el = scrollRef.current;
         if (!el) return;
 
-        const handleResizeAndScroll = () => handleScroll();
-        const resizeObserver = new ResizeObserver(handleResizeAndScroll);
+        const updateShadows = () => {
+            if (isOpen && el.scrollTop !== 0) {
+                el.scrollTop = 0;
+            }
+            handleScroll();
+        };
+
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(updateShadows);
+        });
         resizeObserver.observe(el);
 
-        if (isOpen && character) {
-            el.scrollTop = 0;
-            const observer = new MutationObserver(() => {
-                requestAnimationFrame(handleResizeAndScroll);
-            });
-            observer.observe(el, { childList: true, subtree: true });
+        const mutationObserver = new MutationObserver(() => {
+            requestAnimationFrame(updateShadows);
+        });
+        mutationObserver.observe(el, { childList: true, subtree: true, attributes: true});
 
-            const t1 = setTimeout(handleResizeAndScroll, 50);
-            const t2 = setTimeout(handleResizeAndScroll, 300);
+        if (isOpen) {
+            const initialUpdateTimeout = setTimeout(() => {
+                requestAnimationFrame(updateShadows);
+            }, 0);
+
 
             return () => {
                 resizeObserver.disconnect();
-                observer.disconnect();
-                clearTimeout(t1);
-                clearTimeout(t2);
+                mutationObserver.disconnect();
+                clearTimeout(initialUpdateTimeout);
             };
         }
 
         return () => {
             resizeObserver.disconnect();
+            mutationObserver.disconnect();
+            setShowTopShadow(false);
+            setShowBottomShadow(false);
+            setTopShadowOpacity(0);
+            setBottomShadowOpacity(0);
         };
     }, [isOpen, character, handleScroll]);
 
@@ -401,14 +422,14 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
             <Dialog open={isOpen} onOpenChange={(open) => {
                 if(!open) {
                     onClose();
-                    console.clear();
                 }
                 setShowTopShadow(false);
             }}>
                 <DialogContent
                     className={cn(
                         "rounded-3xl w-full my-4 shadow-2xl shadow-black/20 dark:shadow-black/40",
-                        "bg-gradient-to-br from-white via-white to-gray-50/80 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800/80",
+                        "bg-white dark:bg-gray-900",
+                        "bg-gradient-to-br from-white via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800",
                         "border border-white/20 dark:border-gray-700/30 overflow-hidden p-0",
                         "animate-in fade-in-0 zoom-in-95 duration-250 ease-in-out",
                         MODAL_BREAKPOINTS.sm,

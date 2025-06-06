@@ -14,6 +14,7 @@ import { CharacterDetailsModal } from '@/components/users/character-details-moda
 import type {Person} from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { RotateCcw } from "lucide-react";
+import { usePeopleLogWatcher } from '@/context/log-watcher-instances';
 import {useQueryClient} from "@tanstack/react-query";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 const ITEMS_PER_PAGE = 5;
@@ -42,6 +43,7 @@ const Users = () => {
             queryClient.removeQueries({queryKey: ["favorites"]});
             queryClient.removeQueries({ queryKey: ["swapi-people-total-records"] });
             queryClient.removeQueries({ queryKey: ['swapi-info-person'], exact: false });
+            queryClient.removeQueries({ queryKey: ["homeworld"], exact: false});
             await queryClient.invalidateQueries({ queryKey: ["swapi-people"] });
             await queryClient.fetchQuery({ queryKey: ["swapi-people"] });
         } catch(error) {
@@ -129,7 +131,7 @@ const Users = () => {
                 <TabsContent value="all" className="mt-6">
                     {isLoading || isProcessingRefetch ? (
                         <div className="p-4 text-center">
-                            <LogWatcher className="h-[300px]"/>
+                            <LogWatcher className="h-[300px]" useWatcherHook={usePeopleLogWatcher}/>
                         </div>
                     ) : (
                         <>
@@ -161,7 +163,7 @@ const Users = () => {
                 <TabsContent value="favorites" className="mt-6">
                     {isLoading ? (
                         <div className="p-4 text-center">
-                            <LogWatcher className="h-[300px]"/>
+                            <LogWatcher className="h-[300px]" useWatcherHook={usePeopleLogWatcher}/>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -196,11 +198,8 @@ const Users = () => {
                                 </div>
                             )}
                             {!(filterText && favoriteUsers.length === 0) && (
-                                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-white/80 to-gray-50/50 dark:from-gray-800/80 dark:to-gray-900/50 shadow-2xl shadow-blue-500/10">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5" />
-                                    <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent" />
-                                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-blue-500/5 via-transparent to-transparent rounded-full" />
-
+                                <Card className="relative overflow-hidden border-0 bg-white dark:bg-gray-950 shadow-sm transition-all duration-300 hover:shadow-md">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-100/10 dark:to-blue-900/10" />
                                     <CardHeader className="pb-2 px-4 relative z-10">
                                         <div className="flex justify-between items-center">
                                             <CardTitle className="text-xl font-bold tracking-tight px-0">
@@ -227,7 +226,7 @@ const Users = () => {
 
                                     {favoritesArray.length === 0 ? (
                                         <CardContent className="flex items-center justify-center p-6 text-center border-t">
-                                            <p className="text-lg font-semibold text-gray-500 dark:text-gray-400">{t('noFavorites')}</p>
+                                            <p className="text-lg font-bold text-gray-500 dark:text-gray-400">{t('noFavorites')}</p>
                                         </CardContent>
                                     ) : (
                                         <>
@@ -238,10 +237,9 @@ const Users = () => {
                                                             <li
                                                                 key={person.url}
                                                                 onClick={() => handleRowClick(person)}
-                                                                className="group relative overflow-hidden transition-all duration-300 ease-out hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-0.5 cursor-pointer px-4 py-3 hover:bg-gradient-to-br hover:from-white/90 hover:to-gray-50/60 dark:hover:from-gray-800/90 dark:hover:to-gray-900/60 border-l-2 border-l-transparent hover:border-l-blue-500"
+                                                                className="group relative overflow-hidden transition-all duration-300 ease-out hover:shadow-sm hover:-translate-y-0.5 cursor-pointer px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-l-2 border-l-transparent hover:border-l-blue-500"
                                                                 title={t('clickToViewDetails')}
                                                             >
-                                                                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300" />
                                                                 <div className="flex items-center justify-between relative z-10">
                                                                     <div className="w-[90%] overflow-x-auto scrollbar-thin pr-4 pb-3" style={{ scrollBehavior: "smooth" }}>
                                                                         <div className="grid grid-flow-col auto-cols-[minmax(200px,1fr)] gap-6 min-w-max">
@@ -251,7 +249,7 @@ const Users = () => {
                                                                                 </div>
                                                                                 <Badge
                                                                                     variant="secondary"
-                                                                                    className="bg-gradient-to-r text-sm md:text-md from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-gray-200 font-[500] border-0 shadow-sm group-hover:shadow-md group-hover:from-blue-50 group-hover:to-blue-100 dark:group-hover:from-blue-900/20 dark:group-hover:to-blue-800/20 transition-all duration-300"
+                                                                                    className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-[500] border-0 shadow-none group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-all duration-300"
                                                                                 >
                                                                                     {person.name}
                                                                                 </Badge>
@@ -262,7 +260,7 @@ const Users = () => {
                                                                                 </div>
                                                                                 <Badge
                                                                                     variant="secondary"
-                                                                                    className="bg-gradient-to-r text-sm md:text-md from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-gray-200 font-medium border-0 shadow-sm group-hover:shadow-md group-hover:from-blue-50 group-hover:to-blue-100 dark:group-hover:from-blue-900/20 dark:group-hover:to-blue-800/20 transition-all duration-300"
+                                                                                    className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-medium border-0 shadow-none group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-all duration-300"
                                                                                 >
                                                                                     {person.gender === "n/a"
                                                                                         ? person.gender.toUpperCase()
@@ -278,7 +276,7 @@ const Users = () => {
                                                                                     </div>
                                                                                     <Badge
                                                                                         variant="secondary"
-                                                                                        className="bg-gradient-to-r text-sm md:text-md from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-gray-200 font-medium border-0 shadow-sm group-hover:shadow-md group-hover:from-blue-50 group-hover:to-blue-100 dark:group-hover:from-blue-900/20 dark:group-hover:to-blue-800/20 transition-all duration-300"
+                                                                                        className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-medium border-0 shadow-none group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-all duration-300"
                                                                                     >
                                                                                         {person.birth_year}
                                                                                     </Badge>
@@ -291,7 +289,7 @@ const Users = () => {
                                                                                     </div>
                                                                                     <Badge
                                                                                         variant="secondary"
-                                                                                        className="bg-gradient-to-r text-sm md:text-md from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-gray-200 font-medium border-0 shadow-sm group-hover:shadow-md group-hover:from-blue-50 group-hover:to-blue-100 dark:group-hover:from-blue-900/20 dark:group-hover:to-blue-800/20 transition-all duration-300"
+                                                                                        className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-medium border-0 shadow-none group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-all duration-300"
                                                                                     >
                                                                                         {person.height} cm
                                                                                     </Badge>
@@ -321,7 +319,7 @@ const Users = () => {
                                             </CardContent>
 
                                             {favoriteUsers.length >= ITEMS_PER_PAGE && (
-                                                <CardFooter className="mt-20 flex justify-between items-center px-4 py-2 border-t border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-gray-50/80 to-white/50 dark:from-gray-800/80 dark:to-gray-900/50 relative z-10">
+                                                <CardFooter className="mt-20 flex justify-between items-center px-4 py-2 border-t relative z-10">
                                                     <div className="text-xs text-gray-600 dark:text-gray-300 font-bold">
                                                         {t("pageInfo", {
                                                             current: `${startIndex + 1}-${Math.min(startIndex + ITEMS_PER_PAGE, favoriteUsers.length)}`,

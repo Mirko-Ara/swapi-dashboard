@@ -64,7 +64,7 @@ const fetchStarshipDetailsBatch = async (
 ): Promise<{successful: Starship[], failedCount: number}> => {
   const successful: Starship[] = [];
   let currentFailedCount = 0;
-  const batchSize = 2;
+  const batchSize = 5;
   for ( let i = 0; i < urls.length; i += batchSize) {
       const batchUrls = urls.slice(i, i + batchSize);
       const batchPromises = batchUrls.map(async (url) => {
@@ -116,16 +116,17 @@ const fetchAllStarships = async (): Promise<Starship[]> => {
 
     while (page <= totalPages) {
         const currentPageUrl = `https://swapi.tech/api/starships/?page=${page}&limit=10`;
-        const pageInfo = `SWAPI_FETCH_PAGE:${page}:${totalPages}`;
+        const pageInfo = `SWAPI_FETCH_PAGE:STARSHIPS:${page}:${totalPages}`;
         console.log(pageInfo, currentPageUrl);
         toast(i18n.t("fetchingPage", {
             page: page,
+            type: i18n.t("starships"),
             total: totalPages,
         }));
         const listResponse = await fetchWithRetry(currentPageUrl);
         if (!listResponse) {
-            toast.warning(i18n.t("errorLoadingDataForPage", { page }));
-            console.warn(`Page ${page} failed. Attempting next page...`);
+            toast.warning(i18n.t("errorLoadingDataStarshipsForPage", { page }));
+            console.warn(`Starships Page ${page} failed. Attempting next page...`);
             totalFailedPageListFetches++;
             page++;
             await sleep(delayBetweenPages);
@@ -154,7 +155,7 @@ const fetchAllStarships = async (): Promise<Starship[]> => {
     }
     const totalActualFailedStarships = Math.max(0, expectedTotalStarships - allStarships.length);
     if (totalActualFailedStarships > 0) {
-        const translationKey = totalActualFailedStarships === 1 ? "dataNotLoadedSuccessfully_one" : "dataNotLoadedSuccessfully_other";
+        const translationKey = totalActualFailedStarships === 1 ? "dataStarshipsNotLoadedSuccessfully_one" : "dataStarshipsNotLoadedSuccessfully_other";
         toast.error(i18n.t(translationKey, {
             failed: totalActualFailedStarships,
             total: expectedTotalStarships,
@@ -163,7 +164,7 @@ const fetchAllStarships = async (): Promise<Starship[]> => {
             failedDetails: totalFailedStarshipsDetailsFetches,
         }))
     } else {
-        toast.success(i18n.t("dataLoadedSuccessfully"));
+        toast.success(i18n.t("dataStarshipsLoadedSuccessfully"));
     }
     return allStarships;
 };
