@@ -3,7 +3,7 @@ import {UsersTable} from '../components/users/users-table';
 import {LogWatcher} from '@/components/layout/log-watcher';
 import {useTranslation} from 'react-i18next';
 import {useState, useMemo, useEffect, useCallback} from "react";
-import {useFavorites} from "@/hooks/use-favorites";
+import {useFavoritesPeople} from "@/hooks/use-favorites";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@radix-ui/react-tabs";
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
@@ -24,19 +24,22 @@ const Users = () => {
     const queryClient = useQueryClient();
     const {t} = useTranslation();
     const [activeTab, setActiveTab] = useState("all");
-    const {favorites, favoritesArray, toggleFavorite, clearAll} = useFavorites();
+    const {favorites, favoritesArray, toggleFavoritePeople, clearAll} = useFavoritesPeople();
     const [currentPage, setCurrentPage] = useState(1);
     const [filterText, setFilterText] = useState("");
     const [selectedCharacter, setSelectedCharacter] = useState<Person | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isProcessingRefetch, setIsProcessingRefetch] = useState(false);
+    const { resetLogWatcher } = usePeopleLogWatcher();
 
     const shouldShowRefetchButton = useMemo(() => {
         return !isLoading && !isRefetching && data !== undefined && totalExpectedCharacters !== undefined && !isLoadingTotalRecords;
     }, [isLoading, isRefetching, data, totalExpectedCharacters, isLoadingTotalRecords]);
 
     const handleRefetch = useCallback(async () => {
+        console.clear();
+        resetLogWatcher();
         setIsProcessingRefetch(true);
         try {
             queryClient.removeQueries({queryKey: ["swapi-people"]});
@@ -51,10 +54,9 @@ const Users = () => {
         } finally {
             setTimeout(() => {
                 setIsProcessingRefetch(false);
-                console.clear();
             }, 500);
         }
-    }, [queryClient]);
+    }, [queryClient, resetLogWatcher]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -226,7 +228,7 @@ const Users = () => {
 
                                     {favoritesArray.length === 0 ? (
                                         <CardContent className="flex items-center justify-center p-6 text-center border-t">
-                                            <p className="text-lg font-bold text-gray-500 dark:text-gray-400">{t('noFavorites')}</p>
+                                            <p className="text-lg font-bold">{t('noFavorites')}</p>
                                         </CardContent>
                                     ) : (
                                         <>
@@ -251,7 +253,7 @@ const Users = () => {
                                                                                     variant="secondary"
                                                                                     className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-[500] border-0 shadow-none group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-all duration-300"
                                                                                 >
-                                                                                    {person.name}
+                                                                                    <span className="font-semibold">{person.name}</span>
                                                                                 </Badge>
                                                                             </div>
                                                                             <div className="flex items-center gap-3">
@@ -262,11 +264,11 @@ const Users = () => {
                                                                                     variant="secondary"
                                                                                     className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-medium border-0 shadow-none group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-all duration-300"
                                                                                 >
-                                                                                    {person.gender === "n/a"
+                                                                                    <span className="font-semibold">{person.gender === "n/a"
                                                                                         ? person.gender.toUpperCase()
                                                                                         : (["male", "female", "hermaphrodite", "none"].includes(person.gender)
                                                                                             ? t(person.gender).charAt(0).toUpperCase() + t(person.gender).slice(1).toLowerCase()
-                                                                                            : t("unknown"))}
+                                                                                            : t("unknown"))}</span>
                                                                                 </Badge>
                                                                             </div>
                                                                             {person.birth_year && (
@@ -278,7 +280,7 @@ const Users = () => {
                                                                                         variant="secondary"
                                                                                         className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-medium border-0 shadow-none group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-all duration-300"
                                                                                     >
-                                                                                        {person.birth_year}
+                                                                                        <span className="font-semibold">{person.birth_year}</span>
                                                                                     </Badge>
                                                                                 </div>
                                                                             )}
@@ -291,7 +293,7 @@ const Users = () => {
                                                                                         variant="secondary"
                                                                                         className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-medium border-0 shadow-none group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-all duration-300"
                                                                                     >
-                                                                                        {person.height} cm
+                                                                                        <span className="font-semibold">{person.height} cm</span>
                                                                                     </Badge>
                                                                                 </div>
                                                                             )}
@@ -305,7 +307,7 @@ const Users = () => {
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             const id = person.url?.split('/').slice(-1)[0];
-                                                                            if (id) toggleFavorite(id);
+                                                                            if (id) toggleFavoritePeople(id);
                                                                         }}
                                                                     >
                                                                         <X className={`h-3.5 w-3.5 transition duration-300 ease-in-out ${isMobile ? "text-destructive animate-pulse" : "text-destructive"}`}/>

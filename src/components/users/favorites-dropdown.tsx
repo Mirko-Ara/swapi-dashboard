@@ -1,4 +1,4 @@
-import { useFavorites } from '@/hooks/use-favorites';
+import {useFavoritesPeople, useFavoritesStarships} from '@/hooks/use-favorites';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
@@ -8,11 +8,16 @@ import { ScrollArea } from "@radix-ui/react-scroll-area";
 
 interface FavoritesDropdownProps {
     data: Person[];
+    favoritesKey: "PEOPLE" | "STARSHIPS";
 }
 
-export function FavoritesDropdown({ data }: FavoritesDropdownProps) {
+export function FavoritesDropdown({ data, favoritesKey }: FavoritesDropdownProps) {
     const { t } = useTranslation();
-    const { favoritesArray, toggleFavorite, clearAll } = useFavorites();
+    const { favoritesArray: favoritePeopleArray, toggleFavoritePeople, clearAll: clearAllPeople } = useFavoritesPeople();
+    const {favoritesArray: favoriteStarshipsArray, toggleFavoriteStarships, clearAll: clearAllStarships } = useFavoritesStarships();
+    const favoritesArray = favoritesKey === "PEOPLE" ? favoritePeopleArray : favoriteStarshipsArray;
+    const toggleFavorite = favoritesKey === "PEOPLE" ? toggleFavoritePeople : toggleFavoriteStarships;
+    const clearAll = favoritesKey === "PEOPLE" ? clearAllPeople : clearAllStarships;
 
     if (!data || data.length === 0) {
         return <p className="p-4 text-sm text-muted-foreground">{t('loadingData')}</p>;

@@ -125,6 +125,8 @@ const fetchAllStarships = async (): Promise<Starship[]> => {
         }));
         const listResponse = await fetchWithRetry(currentPageUrl);
         if (!listResponse) {
+            const expectedCountForPage = (page === totalPages) ? (expectedTotalStarships % 10) || 10 : 10;
+            totalFailedStarshipsDetailsFetches += expectedCountForPage;
             toast.warning(i18n.t("errorLoadingDataStarshipsForPage", { page }));
             console.warn(`Starships Page ${page} failed. Attempting next page...`);
             totalFailedPageListFetches++;

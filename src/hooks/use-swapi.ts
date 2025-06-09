@@ -18,6 +18,7 @@ interface SwapiDetailResponse {
 }
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+const isTesting = false;
 
 const fetchTotalExpectedCharacters = async (): Promise<number> => {
     try{
@@ -57,6 +58,10 @@ export const fetchWithRetry = async (
     retries = 3,
     delay = 2000
 ): Promise<Response | null> => {
+    if(isTesting && Math.random() > 0.5) {
+        console.warn(`Skipping fetch for ${url} due to random skip logic.`);
+        return null;
+    }
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);
@@ -155,6 +160,8 @@ const fetchAllPeople = async (): Promise<Person[]> => {
 
         const listResp = await fetchWithRetry(currentUrl);
         if (!listResp) {
+            const expectedCountForPage = (page === totalPages) ? (totalExpectedCharacters % 10 || 10) : 10;
+            totalFailedCharacterDetailFetches += expectedCountForPage;
             toast.warning(i18n.t("errorLoadingDataPeopleForPage", { page }));
             console.warn(`Characters Page ${page} failed. Attempting next page...`);
             totalFailedPageListFetches++;
@@ -167,7 +174,6 @@ const fetchAllPeople = async (): Promise<Person[]> => {
         const characterUrls = listJson.results.map((r) => r.url);
 
         const {successful: peopleFromPage, failedCount} = await fetchPeopleDetailsBatch(characterUrls, 1000);
-
         if (failedCount > 0) {
             totalFailedCharacterDetailFetches += failedCount;
             toast.warning(

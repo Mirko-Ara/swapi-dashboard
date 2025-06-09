@@ -5,6 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            allStarships: 'All Starships',
             starships: 'starships',
             people: 'people',
             refetchDataTooltip: 'Refetch the data',
@@ -30,10 +31,10 @@ const resources = {
             invalidateAndRefreshDataCache: "Invalidate and Refresh Data Cache",
             totalRecords: "{{count}} of {{total}} records loaded",
             refetchData: 'Refetch Data',
-            dataPeopleNotLoadedSuccessfully_other: "{{success}} of {{total}} items loaded successfully. {{failed}} total failed. Unloaded pages: {{failedPages}}. Unloaded character details: {{failedDetails}}.",
-            dataPeopleNotLoadedSuccessfully_one: "{{success}} of {{total}} item loaded successfully. {{failed}} failed in total. Unloaded page: {{failedPages}}. Unloaded character detail: {{failedDetails}}.",
-            dataStarshipsNotLoadedSuccessfully_one: "{{success}} of {{total}} item loaded successfully. {{failed}} failed in total. Unloaded page: {{failedPages}}. Unloaded starship detail: {{failedDetails}}.",
-            dataStarshipsNotLoadedSuccessfully_other: "{{success}} of {{total}} items loaded successfully. {{failed}} total failed. Unloaded pages: {{failedPages}}. Unloaded starship details: {{failedDetails}}.",
+            dataPeopleNotLoadedSuccessfully_other: "{{success}} of {{total}} items loaded successfully. {{failed}} total missing items. full pages failed to load: {{failedPages}}. {{failedDetails}} individual characters fetches failed.",
+            dataPeopleNotLoadedSuccessfully_one: "{{success}} of {{total}} item loaded successfully. {{failed}} missing item. full pages failed to load: {{failedPages}}. {{failedDetails}} individual character fetches failed.",
+            dataStarshipsNotLoadedSuccessfully_one: "{{success}} of {{total}} item loaded successfully. {{failed}} missing item. full pages failed to load: {{failedPages}}. {{failedDetails}} individual starship fetches failed..",
+            dataStarshipsNotLoadedSuccessfully_other: "{{success}} of {{total}} items loaded successfully. {{failed}} total missing items. full pages failed to load: {{failedPages}}. {{failedDetails}} individual starships fetches failed.",
             species: 'Species',
             films: 'Films',
             vehicles: 'Vehicles',
@@ -136,6 +137,7 @@ const resources = {
     },
     it: {
         translation: {
+            allStarships: 'Tutte le Navi Stellari',
             starships: 'navi stellari',
             people: 'persone',
             refetchDataTooltip: 'Ricarica i dati',
@@ -160,10 +162,10 @@ const resources = {
             invalidateAndRefreshDataCache: "Invalida e Aggiorna la Cache Dati",
             totalRecords: "{{count}} di {{total}} record caricati",
             refetchData: 'Ricarica Dati',
-            dataPeopleNotLoadedSuccessfully_other: "{{success}} di {{total}} elementi caricati con successo. {{failed}} falliti in totale. Pagine non caricate: {{failedPages}}. Dettagli personaggi non caricati: {{failedDetails}}.",
-            dataPeopleNotLoadedSuccessfully_one: "{{success}} di {{total}} elemento caricato con successo. {{failed}} fallito in totale. Pagine non caricate: {{failedPages}}. Dettagli personaggio non caricati: {{failedDetails}}.",
-            dataStarshipsNotLoadedSuccessfully_one: "{{success}} di {{total}} elemento caricato con successo. {{failed}} fallito in totale. Pagine non caricate: {{failedPages}}. Dettagli nave stellare non caricati: {{failedDetails}}.",
-            dataStarshipsNotLoadedSuccessfully_other: "{{success}} di {{total}} elementi caricati con successo. {{failed}} falliti in totale. Pagine non caricate: {{failedPages}}. Dettagli navi stellari non caricati: {{failedDetails}}.",
+            dataPeopleNotLoadedSuccessfully_other: "{{success}} di {{total}} elementi caricati con successo. {{failed}} elementi mancanti totali. pagine intere non caricate: {{failedPages}}. {{failedDetails}} fetch di personaggi individuali falliti.",
+            dataPeopleNotLoadedSuccessfully_one: "{{success}} di {{total}} elemento caricato con successo. {{failed}} elemento mancante. pagine intere non caricate: {{failedPages}}. {{failedDetails}} fetch di personaggi individuali falliti.",
+            dataStarshipsNotLoadedSuccessfully_one: "{{success}} di {{total}} elemento caricato con successo. {{failed}} elemento mancante. pagine intere non caricate: {{failedPages}}. {{failedDetails}} fetch di navi stellari individuali falliti.",
+            dataStarshipsNotLoadedSuccessfully_other: "{{success}} di {{total}} elementi caricati con successo. {{failed}} elementi mancanti totali. pagine intere non caricate: {{failedPages}}. {{failedDetails}} fetch di navi stellari individuali falliti.",
             species: 'Specie',
             films: 'Film',
             vehicles: 'Veicoli',
@@ -266,6 +268,7 @@ const resources = {
     },
     es: {
         translation: {
+            allStarships: 'Todas las Naves Estelares',
             people: 'personas',
             starships: 'naves estelares',
             refetchDataTooltip: 'Recargar datos',
@@ -290,10 +293,10 @@ const resources = {
             invalidateAndRefreshDataCache: "Invalidar y Actualizar Caché de Datos",
             totalRecords: "{{count}} de {{total}} registros cargados",
             refetchData: 'Recargar Datos',
-            dataPeopleNotLoadedSuccessfully_other: '{{success}} de {{total}} elementos cargados con éxito. {{failed}} fallidos en total. Páginas no cargadas: {{failedPages}}. Detalles de personajes no cargados: {{failedDetails}}.',
-            dataPeopleNotLoadedSuccessfully_one: "{{success}} de {{total}} elemento cargado con éxito. {{failed}} fallido en total. Páginas no cargadas: {{failedPages}}. Detalles de personaje no cargados: {{failedDetails}}.",
-            dataStarshipsNotLoadedSuccessfully_one: "{{success}} de {{total}} elemento cargado con éxito. {{failed}} fallido en total. Páginas no cargadas: {{failedPages}}. Detalles de nave estelar no cargados: {{failedDetails}}.",
-            dataStarshipsNotLoadedSuccessfully_other: "{{success}} de {{total}} elementos cargados con éxito. {{failed}} fallidos en total. Páginas no cargadas: {{failedPages}}. Detalles de naves estelares no cargados: {{failedDetails}}.",
+            dataPeopleNotLoadedSuccessfully_other: "{{success}} de {{total}} elementos cargados con éxito. {{failed}} elementos faltantes totales. páginas completas no cargadas: {{failedPages}}. {{failedDetails}} carga de personajes individuales fallida.",
+            dataPeopleNotLoadedSuccessfully_one: "{{success}} de {{total}} elemento cargado con éxito. {{failed}} elemento faltante. páginas completas no cargadas: {{failedPages}}. {{failedDetails}} carga de personaje individuales fallida.",
+            dataStarshipsNotLoadedSuccessfully_one: "{{success}} de {{total}} elemento cargado con éxito. {{failed}} elemento faltante. páginas completas no cargadas: {{failedPages}}. {{failedDetails}} carga de naves estelares individuales fallida.",
+            dataStarshipsNotLoadedSuccessfully_other: "{{success}} de {{total}} elementos cargados con éxito. {{failed}} elementos faltantes totales. páginas completas no cargadas: {{failedPages}}. {{failedDetails}} carga de naves estelares individuales fallida.",
             species: 'Especies',
             films: 'Películas',
             vehicles: 'Vehículos',

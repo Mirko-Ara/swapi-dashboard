@@ -1,4 +1,4 @@
-import {createContext, useState, useContext, useEffect, useRef, type ReactNode, useMemo} from 'react';
+import {createContext, useState, useContext, useEffect, useRef, type ReactNode, useMemo, useCallback} from 'react';
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -6,6 +6,7 @@ export interface LogWatcherContextType {
     currentPage: number | null;
     totalPages: number | null;
     fetchingMessage: string;
+    resetLogWatcher: () => void;
 }
 
 export type LogFilterId = "PEOPLE" | "STARSHIPS";
@@ -21,6 +22,7 @@ export function createLogWatcherContext(filterId: LogFilterId) {
         currentPage: null,
         totalPages: null,
         fetchingMessage: "",
+        resetLogWatcher: () => {},
     });
 
     const useLogWatcher = () => useContext(Context);
@@ -34,6 +36,11 @@ export function createLogWatcherContext(filterId: LogFilterId) {
         const setters: Setters = useMemo(() => ({ setCurrentPage, setTotalPages, setFetchingMessage}), []);
         const originalConsoleLogRef = useRef<typeof console.log | null>(null);
         const languageRef = useRef<string>(i18n.language);
+        const resetLogWatcher = useCallback(() => {
+            setCurrentPage(null);
+            setTotalPages(null);
+            setFetchingMessage("");
+        }, []);
 
         useEffect(() => {
             if(!originalConsoleLogRef.current) {
@@ -77,7 +84,7 @@ export function createLogWatcherContext(filterId: LogFilterId) {
             };
         }, [i18n.language, i18n, setters]);
         return (
-            <Context.Provider value={{ currentPage, totalPages, fetchingMessage }}>
+            <Context.Provider value={{ currentPage, totalPages, fetchingMessage, resetLogWatcher }}>
                 {children}
             </Context.Provider>
         );

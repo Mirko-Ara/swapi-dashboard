@@ -18,7 +18,7 @@ import type { Person } from '@/types';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import React, {useCallback, useMemo, useEffect, useRef, useState} from "react";
-import {useFavorites} from "@/hooks/use-favorites.tsx";
+import {useFavoritesPeople} from "@/hooks/use-favorites.tsx";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {useQuery} from "@tanstack/react-query";
@@ -176,7 +176,7 @@ const DetailCard: React.FC<{detail: DetailItem; t: (key: string) => string; inde
             <Card className="group relative overflow-hidden transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 border-transparent bg-white dark:bg-gray-900">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300" />
                 <CardHeader className="pb-3 relative z-10">
-                    <CardTitle className="text-sm font-bold font-sans italic text-gray-600 dark:text-gray-300 flex items-center gap-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                    <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                         <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-all duration-300 group-hover:scale-110">
                             <Icon className={`h-${ICON_SIZE} w-${ICON_SIZE} text-blue-600 dark:text-blue-400`}/>
                         </div>
@@ -233,14 +233,14 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
     const [showBottomShadow, setShowBottomShadow] = useState(false);
     const [topShadowOpacity, setTopShadowOpacity] = useState(0);
     const [bottomShadowOpacity, setBottomShadowOpacity] = useState(0);
-    const { favorites } = useFavorites();
+    const { favorites } = useFavoritesPeople();
     const { data: extra, isLoading: loadingExtra} = useSwapiInfoDetails(character);
     const { data: homeworldName, isLoading: homeworldLoading } = useHomeWorld(character?.homeworld ?? null);
 
     const isFavorite = useMemo(() => {
         if(!character?.url) return false;
         const characterId = character.url.split("/").slice(-1)[0];
-        return !!favorites[characterId];
+        return favorites[characterId];
     }, [character?.url, favorites]);
 
     const handleScroll = useCallback(() => {
@@ -495,7 +495,7 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
                         </div>
 
                         {loadingExtra && (
-                            <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 italic">
+                            <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
                                 <LoaderSpinner size="md" className="flex items-center justify-center p-6" />
                             </div>
                         )}

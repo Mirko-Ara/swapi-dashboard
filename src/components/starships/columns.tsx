@@ -1,6 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Starship } from '@/types';
+import { FavoriteTableCell } from '@/components/users/favorite-table-cell';
 
+const STARSHIP_KEY = 'STARSHIPS';
 export const columns: ColumnDef<Starship>[] = [
     {
         accessorKey: 'name',
@@ -9,7 +11,8 @@ export const columns: ColumnDef<Starship>[] = [
             return t('starshipName');
         },
         cell: ({ row }) => {
-            return <div>{row.original.name}</div>;
+            const id = row.original.url.split('/').slice(-1)[0];
+            return <FavoriteTableCell id={id} name={row.original.name} favoritesKey={STARSHIP_KEY}/>;
         },
     },
     {

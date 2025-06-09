@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import{useMemo} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
+import {useFavoritesStarships} from "@/hooks/use-favorites.tsx";
+import {Heart} from "lucide-react";
 
 interface StarshipDetailsModalProps {
     starship: Starship | null;
@@ -20,6 +22,7 @@ interface StarshipsInfoExtra {
 
 const useStarshipsDetails = (starship: Starship | null) => {
     const id = useMemo(() => starship?.url.split("/").filter(Boolean).pop(), [starship?.url]);
+
     return useQuery<StarshipsInfoExtra>({
         queryKey: ['swapi-info-starship-extra', id],
         queryFn: async () => {
@@ -57,6 +60,13 @@ const useStarshipsDetails = (starship: Starship | null) => {
 export const StarshipDetailsModal = ({ starship, isOpen, onClose }: StarshipDetailsModalProps) => {
     const { t } = useTranslation();
     const { data: extraDetails, isLoading: loadingExtra} = useStarshipsDetails(starship);
+    const {favorites} = useFavoritesStarships();
+
+    const isFavorite = useMemo(() => {
+        if(!starship?.url) return false;
+        const starshipId = starship.url.split("/").slice(-1)[0];
+        return favorites[starshipId]
+    }, [starship?.url, favorites]);
 
     if (!starship) {
         return null;
@@ -66,7 +76,9 @@ export const StarshipDetailsModal = ({ starship, isOpen, onClose }: StarshipDeta
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px] md:max-w-[600px] lg:max-w-[700px]">
                 <DialogHeader>
-                    <DialogTitle className="font-semibold italic">{t('starshipDetailsTitle')}</DialogTitle>
+                    <DialogTitle className="font-semibold italic flex items-center gap-2">{t('starshipDetailsTitle')}
+                        <Heart className={`h-6 w-6 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`}/>
+                    </DialogTitle>
                     <DialogDescription className="font-semibold">
                         {t('starshipDetailsDescription', { name: starship.name })}
                     </DialogDescription>

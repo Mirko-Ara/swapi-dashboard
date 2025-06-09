@@ -43,8 +43,12 @@ const Dashboard = () => {
     const { isLoading } = useSwapiPeople();
     const queryClient = useQueryClient();
     const { t } = useTranslation();
+    const { resetLogWatcher } = usePeopleLogWatcher();
+
 
     const handleCacheAction = useCallback(async (): Promise<void> => {
+        console.clear();
+        resetLogWatcher();
         setIsProcessingCache(true);
         setCacheMessage(t("processingCache"));
         try {
@@ -64,10 +68,9 @@ const Dashboard = () => {
             setTimeout(() => {
                 setIsProcessingCache(false);
                 setCacheMessage(null);
-                console.clear();
             }, 500);
         }
-    }, [queryClient, t]);
+    }, [queryClient, t, resetLogWatcher]);
 
     const hasCache = queryClient.getQueryData(["swapi-people"]) !== undefined;
     const lastUpdated = queryClient.getQueryState(["swapi-people"])?.dataUpdatedAt;
