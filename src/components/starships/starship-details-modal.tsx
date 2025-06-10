@@ -121,7 +121,7 @@ export const StarshipDetailsModal = ({ starship, isOpen, onClose }: StarshipDeta
                             </div>
                         ) : (
                             <>
-                                <div className="grid grid-cols-2 items-start gap-4"> {/* Usare items-start per allineare l'inizio del testo */}
+                                <div className="grid grid-cols-2 items-start gap-4">
                                     <p className="text-sm leading-none font-semibold italic">{t('starshipPilots')}:</p>
                                     <p className="text-sm text-muted-foreground">
                                         {extraDetails?.pilots && extraDetails.pilots.length > 0

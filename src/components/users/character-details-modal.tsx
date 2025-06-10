@@ -269,7 +269,7 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
             setShowBottomShadow(false);
             setBottomShadowOpacity(0);
         }
-    }, []);
+    }, [scrollRef]);
 
     useEffect(() => {
         const el = scrollRef.current;
@@ -313,7 +313,7 @@ export const CharacterDetailsModal = ({character, isOpen, onClose}: CharacterDet
             setTopShadowOpacity(0);
             setBottomShadowOpacity(0);
         };
-    }, [isOpen, character, handleScroll]);
+    }, [isOpen, character, handleScroll, scrollRef]);
 
 
     const details: (DetailItem[] | null) = useMemo(() => {

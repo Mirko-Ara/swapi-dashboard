@@ -12,6 +12,7 @@ import {
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -119,7 +120,30 @@ export function DataTable<TData>({
                                         <TableHead key={header.id}>
                                             {header.isPlaceholder
                                                 ? null
-                                                : flexRender(header.column.columnDef.header, header.getContext())}
+                                                : (
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined}
+                                                        className="group -ml-1 flex items-start gap-1 whitespace-nowrap cursor-pointer"
+                                                    >
+                                                        <span className="-ml-3">{flexRender(
+                                                            header.column.columnDef.header,
+                                                            header.getContext()
+                                                        )}</span>
+                                                        <span className="mt-0.75">{header.column.getCanSort() && (
+                                                            <>
+                                                                {header.column.getIsSorted() === 'asc' ? (
+                                                                    <ChevronUp className="ml-2 h-4 w-4" />
+                                                                ) : header.column.getIsSorted() === "desc" ? (
+                                                                    <ChevronDown className="ml-2 h-4 w-4" />
+                                                                ) : (
+                                                                    <ArrowUpDown className="ml-2 h-4 w-4 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                                                                )}
+                                                            </>
+                                                        )}</span>
+                                                    </Button>
+                                                )
+                                            }
                                         </TableHead>
                                     ))}
                                 </TableRow>

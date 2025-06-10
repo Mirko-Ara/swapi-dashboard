@@ -110,6 +110,33 @@ const Users = () => {
         setCurrentPage(1);
     }, []);
 
+    useEffect(() => {
+        const newTotalPages = Math.ceil(favoriteUsers.length / ITEMS_PER_PAGE);
+        if (favoriteUsers.length === 0) {
+            setCurrentPage(1);
+            return;
+        }
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        const elementsInCurrentPage = favoriteUsers.slice(startIndex, startIndex + ITEMS_PER_PAGE).length;
+        
+        if(elementsInCurrentPage === 0 && currentPage > 1) {
+            setCurrentPage(prev => Math.max(prev - 1, 1));
+        } else if (currentPage > newTotalPages && newTotalPages > 0) {
+            setCurrentPage(newTotalPages);
+        }
+
+    }, [favoriteUsers.length, currentPage, favoriteUsers]);
+
+    const handleRemoveFavorite = useCallback((personId: string) => {
+        toggleFavoritePeople(personId);
+    }, [toggleFavoritePeople]);
+
+    const handleClearAll = useCallback(() => {
+        clearAll();
+        setFilterText('');
+        setCurrentPage(1);
+    }, [clearAll]);
+
     return (
         <div className="flex flex-col p-8 pt-6 space-y-6">
             <div className="flex justify-center items-center">
@@ -217,7 +244,7 @@ const Users = () => {
                                                     variant="ghost"
                                                     size="sm"
                                                     className="border-none cursor-pointer h-8 -mr-3 -mt-4 px-2 hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
-                                                    onClick={clearAll}
+                                                    onClick={handleClearAll}
                                                 >
                                                     {!isMobile ? (<div className="flex items-center gap-1 col-span-2 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100">{t('clearAll')}<Trash2 className="h-4 w-4 hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100"/></div>) : <Trash2 className="h-4 w-4 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100"/>}
                                                 </Button>
@@ -307,7 +334,9 @@ const Users = () => {
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             const id = person.url?.split('/').slice(-1)[0];
-                                                                            if (id) toggleFavoritePeople(id);
+                                                                            if (id) {
+                                                                               handleRemoveFavorite(id);
+                                                                            }
                                                                         }}
                                                                     >
                                                                         <X className={`h-3.5 w-3.5 transition duration-300 ease-in-out ${isMobile ? "text-destructive animate-pulse" : "text-destructive"}`}/>

@@ -8,7 +8,6 @@ import {Button} from "@/components/ui/button.tsx";
 import {Calendar, ChevronLeft, ChevronRight, Palette, RotateCcw, Ruler, Trash2, X} from "lucide-react";
 import {useQueryClient} from "@tanstack/react-query";
 import {Input} from "@/components/ui/input";
-import i18n from "i18next";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@radix-ui/react-tabs";
 import { useStarshipsLogWatcher } from '@/context/log-watcher-instances';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -20,19 +19,7 @@ import { StarshipDetailsModal } from "@/components/starships/starship-details-mo
 
 const ITEMS_PER_PAGE = 5;
 
-const formatNumberForDisplay = (value: string | number | undefined | null, locale: string): string => {
-    if(value === null || value === undefined || value === "n/a" || value === "unknown" || value === "none") {
-        return "unknown";
-    }
-    const num = parseFloat(String(value).replace(/,/g, ''));
-    if(isNaN(num)) {
-        return String(value);
-    }
-    return new Intl.NumberFormat(locale).format(num);
-};
-
 export const Starships = () => {
-    const currentLocale = i18n.language || 'en-US';
     const { data, isLoading, isRefetching, expectedTotalStarships, isLoadingTotalRecords } = useSwapiStarships();
     const { t } = useTranslation();
     const [filterText, setFilterText] = useState("");
@@ -98,36 +85,30 @@ export const Starships = () => {
         }) || [];
     }, [data, favorites, filterText]);
 
-    const newData: Starship[] = useMemo(() => {
+    const cleanAndParse = useCallback((val: string | number | undefined): string => {
+        if (val === null || val === undefined || val === "n/a" || val === "unknown" || val === "none") {
+            return 'unknown';
+        }
+        const cleanedVal = String(val).replace(/,/g, '');
+        const num = parseFloat(cleanedVal);
+        return isNaN(num) ? 'unknown' : String(num);
+    }, []);
+
+    const formattedData: Starship[] = useMemo(() => {
         const processedData: Starship[] = [];
         if (data !== undefined && !isLoading) {
             data.forEach((starship: Starship) => {
-                const formattedPassengers = formatNumberForDisplay(starship.passengers, currentLocale);
-                const passengers = formattedPassengers === "unknown" ? t("unknown") : formattedPassengers;
-
-                const formattedCargoCapacity = formatNumberForDisplay(starship.cargo_capacity, currentLocale);
-                const cargoCapacity = formattedCargoCapacity === "unknown" ? t("unknown") : `${formattedCargoCapacity} kg`;
-
-                let maxAtmospheringSpeed = starship.max_atmosphering_speed;
-                if (maxAtmospheringSpeed === "1000km") {
-                    maxAtmospheringSpeed = "1000 km/h";
-                } else if (maxAtmospheringSpeed === "n/a" || maxAtmospheringSpeed === "unknown") {
-                    maxAtmospheringSpeed = t("unknown");
-                } else {
-                    maxAtmospheringSpeed = `${formatNumberForDisplay(starship.max_atmosphering_speed, currentLocale)} km/h`;
-                }
-
                 processedData.push({
                     ...starship,
-                    passengers: passengers,
-                    cargo_capacity: cargoCapacity,
+                    passengers: cleanAndParse(starship.passengers),
+                    cargo_capacity: cleanAndParse(starship.cargo_capacity),
+                    max_atmosphering_speed: cleanAndParse(starship.max_atmosphering_speed),
                     pilots: starship.pilots,
-                    max_atmosphering_speed: maxAtmospheringSpeed,
                 });
             });
         }
         return processedData;
-    }, [data, isLoading, t, currentLocale]);
+    }, [cleanAndParse, data, isLoading]);
 
     const handleFilterChange = useCallback((input: string) => {
         const filtered = input.replace(/[^\w\s-/]/gi, '');
@@ -156,6 +137,28 @@ export const Starships = () => {
     const prevPage = useCallback(() => {
         setCurrentPage(prev => Math.max(prev - 1, 1));
     }, []);
+    
+    useEffect(() => {
+       const newTotalPages = Math.ceil(favoritesStarships.length / ITEMS_PER_PAGE);
+       if(favoritesStarships.length === 0) {
+           setCurrentPage(1);
+           return;
+       }
+       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+       const elementsForPage = favoritesStarships.slice(startIndex, startIndex + ITEMS_PER_PAGE).length;
+       
+       if(elementsForPage === 0 && currentPage > 1) {
+           setCurrentPage(currentPage - 1);
+       } else if(currentPage > newTotalPages && newTotalPages > 0) {
+           setCurrentPage(newTotalPages);
+       }
+    }, [favoritesStarships.length, currentPage, favoritesStarships]);
+
+    const handleClearAll = useCallback(() => {
+        clearAll();
+        setCurrentPage(1);
+        setFilterText('');
+    }, [clearAll]);
 
     return (
         <div className="flex flex-col p-8 pt-6 space-y-6 w-full h-full">
@@ -184,7 +187,7 @@ export const Starships = () => {
                         <LogWatcher className="h-[300px]" useWatcherHook={useStarshipsLogWatcher}/>
                     ) : (
                         <>
-                            <StarshipsTable data={newData || []} />
+                            <StarshipsTable data={formattedData || []} />
                             {shouldStarshipShowRefetchButton && (
                                 <div className="mt-6 text-center">
                                     <Tooltip delayDuration={200}>
@@ -261,7 +264,7 @@ export const Starships = () => {
                                                     variant="ghost"
                                                     size="sm"
                                                     className="border-none cursor-pointer h-8 -mr-3 -mt-4 px-2 hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
-                                                    onClick={clearAll}
+                                                    onClick={handleClearAll}
                                                 >
                                                     {!isMobile ? (<div className="flex items-center gap-1 col-span-2 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100">{t('clearAll')}<Trash2 className="h-4 w-4 hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100"/></div>) : <Trash2 className="h-4 w-4 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100"/>}
                                                 </Button>
