@@ -1,6 +1,16 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import type {ColumnDef, FilterFn} from '@tanstack/react-table'
 import type {Person} from '@/types';
 import {FavoriteTableCell} from '@/components/users/favorite-table-cell';
+import {rankItem} from "@tanstack/match-sorter-utils";
+
+export const fuzzyFilter: FilterFn<Person> = (row, columnId, value, addMeta) => {
+    const itemRank = rankItem(row.getValue(columnId), value);
+    addMeta({
+        itemRank,
+    });
+    return itemRank.passed;
+}
+
 const PEOPLE_KEY = 'PEOPLE' as const;
 export const columns: ColumnDef<Person>[] = [
     {
@@ -14,6 +24,7 @@ export const columns: ColumnDef<Person>[] = [
             return <FavoriteTableCell id={id} name={row.original.name} favoritesKey={PEOPLE_KEY}/>;
         },
         enableSorting: true,
+        filterFn: fuzzyFilter,
     },
     {
         accessorKey: 'gender',
@@ -23,6 +34,7 @@ export const columns: ColumnDef<Person>[] = [
         },
         cell: ({ row }) => <div className="capitalize">{row.getValue('gender')}</div>,
         enableSorting: true,
+        filterFn: fuzzyFilter,
     },
     {
         accessorKey: 'birth_year',
@@ -32,6 +44,7 @@ export const columns: ColumnDef<Person>[] = [
         },
         enableSorting: true,
         sortingFn: 'alphanumeric',
+        filterFn: fuzzyFilter,
     },
     {
         accessorKey: 'height',
@@ -41,5 +54,6 @@ export const columns: ColumnDef<Person>[] = [
         },
         enableSorting: true,
         sortingFn: 'alphanumeric',
+        filterFn: fuzzyFilter,
     },
 ];

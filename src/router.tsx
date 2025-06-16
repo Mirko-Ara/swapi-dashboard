@@ -11,7 +11,8 @@ import App from "./App"
 import NotFound from "./components/not-found"
 import { ProtectedRoute } from "./components/protected-route"
 import { Starships } from "./routes/starships";
-// Root Route
+import { z  } from "zod";
+
 const rootRoute = createRootRoute({
     component: App,
     notFoundComponent: NotFound,
@@ -35,6 +36,10 @@ const usersRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/characters",
     component: ProtectedRoute(Users),
+    validateSearch: z.object({
+        page: z.number().int().min(1).catch(1),
+        limit: z.number().int().max(10).catch(10)
+    }),
 });
 
 const settingsRoute = createRoute({
@@ -47,6 +52,10 @@ const starshipsRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/starships",
     component: ProtectedRoute(Starships),
+    validateSearch: z.object({
+        page: z.number().int().min(1).catch(1),
+        limit: z.number().int().min(1).max(10).catch(10),
+    }),
 })
 
 const routeTree = rootRoute.addChildren([
@@ -57,7 +66,6 @@ const routeTree = rootRoute.addChildren([
     starshipsRoute,
 ])
 
-// Create router
 export const router = createRouter({
     routeTree,
     defaultPreload: "intent",
@@ -66,7 +74,6 @@ export const router = createRouter({
     },
 })
 
-// Type override
 declare module "@tanstack/react-router" {
     interface Register {
         router: typeof router

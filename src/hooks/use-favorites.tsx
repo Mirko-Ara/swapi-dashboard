@@ -7,8 +7,8 @@ interface FavoritesPeople {
     favorites: Record<string, boolean>;
     favoritesArray: string[];
     toggleFavoritePeople: (id: string) => void;
-    toggleFavoriteStarships?: (id: string) => void;
     clearAll: () => void;
+    clearCurrentPageFavorites: (idsToRemove: string[]) => void;
 }
 
 interface FavoritesStarships {
@@ -16,7 +16,18 @@ interface FavoritesStarships {
     favoritesArray: string[];
     toggleFavoriteStarships: (id: string) => void;
     clearAll: () => void;
+    clearCurrentPageFavorites: (idsToRemove: string[]) => void;
 }
+
+const removeCurrentPageFavoritesByIds = (currentFavorites: Record<string, boolean>, idsToRemove: string[]): Record<string, boolean> => {
+    const updatedFavorites = { ...currentFavorites };
+    idsToRemove.forEach(id => {
+        if(updatedFavorites[id]){
+            delete updatedFavorites[id];
+        }
+    });
+    return updatedFavorites;
+};
 
 const toggleFavorite = (favorites: Record<string, boolean>, id: string): Record<string , boolean> => {
     const updated = { ...favorites };
@@ -56,13 +67,18 @@ export function useFavoritesPeople(): FavoritesPeople {
     const clearAll = () => {
         mutation.mutate({});
     };
+
+    const clearCurrentPageFavorites = (idsToRemove: string[]) => {
+        mutation.mutate(removeCurrentPageFavoritesByIds(favorites, idsToRemove));
+    }
     const favoritesArray = Object.keys(favorites);
 
     return {
         favorites,
         favoritesArray,
         toggleFavoritePeople,
-        clearAll
+        clearAll,
+        clearCurrentPageFavorites,
     };
 }
 
@@ -92,11 +108,16 @@ export function useFavoritesStarships(): FavoritesStarships {
         mutation.mutate({});
     };
 
+    const clearCurrentPageFavorites = (idsToRemove: string[]) => {
+        mutation.mutate(removeCurrentPageFavoritesByIds(favorites, idsToRemove));
+    }
+
     const favoritesArray = Object.keys(favorites);
     return {
         favorites,
         favoritesArray,
         toggleFavoriteStarships,
-        clearAll
+        clearAll,
+        clearCurrentPageFavorites
     };
 }

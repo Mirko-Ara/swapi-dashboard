@@ -8,6 +8,7 @@ import {useQuery} from "@tanstack/react-query";
 import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
 import {useFavoritesStarships} from "@/hooks/use-favorites.tsx";
 import {Heart} from "lucide-react";
+import i18n from "i18next";
 
 interface StarshipDetailsModalProps {
     starship: Starship | null;
@@ -56,7 +57,28 @@ const useStarshipsDetails = (starship: Starship | null) => {
         staleTime: Infinity,
         gcTime: Infinity,
     })
-}
+};
+
+const formatNumberForDisplay = (value: string | number | undefined | null, unit?: string): string => {
+    const locale = i18n.language ?? 'en-US';
+
+    const invalidValues = [null, undefined, "n/a", "unknown", "none"];
+    if (typeof value !== 'number' && invalidValues.includes(value)) {
+        return i18n.t("unknown");
+    }
+
+    const cleaned = String(value).replace(/,/g, '');
+    const num = parseFloat(cleaned);
+
+    if(isNaN(num)){
+        return String(value);
+    }
+    const formatted = new Intl.NumberFormat(locale).format(num);
+    return unit ? `${formatted} ${unit}` : formatted;
+};
+
+
+
 export const StarshipDetailsModal = ({ starship, isOpen, onClose }: StarshipDetailsModalProps) => {
     const { t } = useTranslation();
     const { data: extraDetails, isLoading: loadingExtra} = useStarshipsDetails(starship);
@@ -102,17 +124,17 @@ export const StarshipDetailsModal = ({ starship, isOpen, onClose }: StarshipDeta
                         <Separator />
                         <div className="grid grid-cols-2 items-start gap-4">
                             <p className="text-sm leading-none font-semibold italic">{t('starshipPassengers')}:</p>
-                            <p className="text-sm text-muted-foreground">{starship.passengers}</p>
+                            <p className="text-sm text-muted-foreground">{formatNumberForDisplay(starship.passengers)}</p>
                         </div>
                         <Separator />
                         <div className="grid grid-cols-2 items-start gap-4">
                             <p className="text-sm leading-none font-semibold italic">{t('starshipCargoCapacity')}:</p>
-                            <p className="text-sm text-muted-foreground">{starship.cargo_capacity}</p>
+                            <p className="text-sm text-muted-foreground">{formatNumberForDisplay(starship.cargo_capacity, "kg")}</p>
                         </div>
                         <Separator />
                         <div className="grid grid-cols-2 items-start gap-4">
                             <p className="text-sm leading-none font-semibold italic">{t('starshipMaxAtmospheringSpeed')}:</p>
-                            <p className="text-sm text-muted-foreground">{starship.max_atmosphering_speed}</p>
+                            <p className="text-sm text-muted-foreground">{formatNumberForDisplay(starship.max_atmosphering_speed, "km/h")}</p>
                         </div>
                         <Separator />
                         { loadingExtra ? (

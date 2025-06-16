@@ -9,6 +9,8 @@ interface SwapiListResponse {
     next: string | null;
     previous: string | null;
     results: { url: string }[];
+    total_records: number;
+    total_pages: number;
 }
 
 interface SwapiDetailResponse {
@@ -17,22 +19,14 @@ interface SwapiDetailResponse {
     };
 }
 
+interface PeoplePageResult {
+    people: Person[];
+    totalRecords: number;
+    totalPages: number;
+}
+
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const isTesting = false;
-
-const fetchTotalExpectedCharacters = async (): Promise<number> => {
-    try{
-        const response = await fetch("https://www.swapi.tech/api/people");
-        if(!response.ok) {
-            throw new Error(`Error fetching total_pages: ${response.status} ${response.statusText}`);
-        }
-        const json = await response.json();
-        return json.total_records;
-    } catch (error) {
-        console.error("Error during total_expected_characters fetching:", error);
-        return 82; // Default value if fetching fails
-    }
-};
 
 const fetchTotalPagesFetch = async (): Promise<number | null> => {
     try {
@@ -127,55 +121,29 @@ const fetchPeopleDetailsBatch = async (
 };
 
 
-const fetchAllPeople = async (): Promise<Person[]> => {
-    const allPeople: Person[] = [];
-    let page = 1;
-    const delayBetweenPages = 1500;
-
-    let totalExpectedCharacters = 82;
+const fetchPeoplePage = async (page: number, limit: number): Promise<PeoplePageResult> => {
+    const totalPages: number = await fetchTotalPagesFetch() ?? 9;
     try {
-        totalExpectedCharacters = await fetchTotalExpectedCharacters();
-    } catch (error) {
-        console.error("Could not fetch total expected characters, using default.", error);
-    }
-
-    let totalPages = 9; // fallback value
-    const fetchedTotalPages = await fetchTotalPagesFetch();
-    if (fetchedTotalPages !== null) {
-        totalPages = fetchedTotalPages;
-    }
-
-    let totalFailedPageListFetches = 0;
-    let totalFailedCharacterDetailFetches = 0;
-
-    while (page <= totalPages) {
-        const currentUrl= `https://www.swapi.tech/api/people?page=${page}&limit=10`;
-        const pageInfo = `SWAPI_FETCH_PAGE:PEOPLE:${page}:${totalPages}`;
-        console.log(pageInfo, currentUrl);
+        const url = `https://www.swapi.tech/api/people?page=${page}&limit=10`;
+        const pageInfo = `SWAPI_FETCH_PAGE:PEOPLE:${page}:${totalPages}:limit ${limit}`;
+        console.log(pageInfo, url);
         toast(i18n.t("fetchingPage", {
             page: page,
             type: i18n.t("characters"),
             total: totalPages,
+            limit: limit,
         }));
-
-        const listResp = await fetchWithRetry(currentUrl);
-        if (!listResp) {
-            const expectedCountForPage = (page === totalPages) ? (totalExpectedCharacters % 10 || 10) : 10;
-            totalFailedCharacterDetailFetches += expectedCountForPage;
+        const listResponse = await fetchWithRetry(url);
+        if (!listResponse) {
             toast.warning(i18n.t("errorLoadingDataPeopleForPage", { page }));
-            console.warn(`Characters Page ${page} failed. Attempting next page...`);
-            totalFailedPageListFetches++;
-            page++;
-            await sleep(delayBetweenPages);
-            continue;
+            throw new Error(`Failed to fetch people list for page ${page} of ${totalPages}, after retries.`);
         }
 
-        const listJson: SwapiListResponse = await listResp.json();
+        const listJson: SwapiListResponse = await listResponse.json();
         const characterUrls = listJson.results.map((r) => r.url);
 
         const {successful: peopleFromPage, failedCount} = await fetchPeopleDetailsBatch(characterUrls, 1000);
         if (failedCount > 0) {
-            totalFailedCharacterDetailFetches += failedCount;
             toast.warning(
                 i18n.t("failedCharactersCount", {
                     count: failedCount,
@@ -183,37 +151,29 @@ const fetchAllPeople = async (): Promise<Person[]> => {
                 })
             );
         }
-
-        allPeople.push(...peopleFromPage);
-        page++;
-
-        if (page <= totalPages) {
-            await sleep(delayBetweenPages);
-        }
+        toast.success(i18n.t("dataPeopleLoadedSuccessfully", {
+            page: page,
+        }));
+        return {
+            people: peopleFromPage,
+            totalRecords: listJson.total_records,
+            totalPages: listJson.total_pages || totalPages,
+        };
+    } catch (error) {
+        console.error(`Error fetching people for page ${page}:`, error);
+        toast.warning(i18n.t("errorLoadingDataPeopleForPage", { page }));
+        throw error;
     }
-    const totalActualFailedCharacters = Math.max(0, totalExpectedCharacters - allPeople.length);
-    if (totalActualFailedCharacters > 0) {
-        const translationKey = totalActualFailedCharacters === 1 ? "dataPeopleNotLoadedSuccessfully_one" : "dataPeopleNotLoadedSuccessfully_other";
-        toast.error(i18n.t(translationKey, {
-                failed: totalActualFailedCharacters,
-                total: totalExpectedCharacters,
-                success: allPeople.length,
-                failedPages: totalFailedPageListFetches,
-                failedDetails: totalFailedCharacterDetailFetches,
-            })
-        );
-    } else {
-        toast.success(i18n.t("dataPeopleLoadedSuccessfully"));
-    }
-    return allPeople;
 };
 
-export function useSwapiPeople() {
-    const { data, isLoading, error, refetch, isRefetching, isError } = useQuery<Person[], Error, Person[], ["swapi-people"]>({
-        queryKey: ["swapi-people"],
-        queryFn: fetchAllPeople,
-        staleTime: Infinity,
-        gcTime: Infinity,
+export function useSwapiPeople(page: number, limit: number = 10) {
+    const { data, isLoading, error, refetch, isRefetching, isError } = useQuery<PeoplePageResult, Error, PeoplePageResult, ["swapi-people", typeof page, typeof limit]>({
+        queryKey: ["swapi-people", page, limit],
+        queryFn: () => fetchPeoplePage(page, limit),
+        staleTime: 1000 * 60 * 60 * 24,
+        placeholderData: (prevData) => prevData,
+        gcTime: 1000 * 60 * 60 * 24,
+        enabled: !!page && !!limit && page > 0 && limit > 0,
         retry: 2,
         retryDelay: 1000,
         refetchOnWindowFocus: false,
@@ -225,21 +185,13 @@ export function useSwapiPeople() {
         }
     }, [isError, error]);
 
-    const { data: totalRecordsData, isLoading: isLoadingTotalRecords } = useQuery<number, Error, number, ["swapi-people-total-records"]>({
-        queryKey: ["swapi-people-total-records"],
-        queryFn: fetchTotalExpectedCharacters,
-        staleTime: Infinity,
-        gcTime: Infinity,
-        refetchOnWindowFocus: false,
-    });
-
     return {
-        data,
+        people: data?.people || [],
+        totalPeople: data?.totalRecords,
+        totalPages: data?.totalPages === undefined ? 9 : data.totalPages,
         isLoading,
         error,
         refetch,
         isRefetching,
-        totalExpectedCharacters: totalRecordsData,
-        isLoadingTotalRecords,
     };
 }

@@ -4,7 +4,6 @@ import {
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
-    getPaginationRowModel,
     getSortedRowModel,
     type SortingState,
     useReactTable,
@@ -30,6 +29,19 @@ interface DataTableProps<TData> {
     filterPlaceholder: string;
     onRowClick?: (row: TData) => void;
     clickDetailsTooltip?: string;
+    serverPagination?: {
+        pageIndex: number;
+        pageSize: number;
+        pageCount: number;
+        canNextPage: boolean;
+        canPreviousPage: boolean;
+        nextPage: () => void;
+        previousPage: () => void;
+        setPageSize: (size: number) => void;
+        totalRows: number | undefined;
+    };
+    globalFilterValue?: string;
+    onGlobalFilterChange?: (value: string) => void;
 }
 
 export function DataTable<TData>({
@@ -39,9 +51,14 @@ export function DataTable<TData>({
      filterPlaceholder,
      onRowClick,
      clickDetailsTooltip,
+     serverPagination,
+     globalFilterValue,
+     onGlobalFilterChange,
  }: DataTableProps<TData>) {
     const [sorting, setSorting] = useState<SortingState>([]);
-    const [globalFilter, setGlobalFilter] = useState('');
+    const [internalGlobalFilter, setInternalGlobalFilter] = useState('');
+    const globalFilter = globalFilterValue !== undefined ? globalFilterValue : internalGlobalFilter;
+    const setGlobalFilter = onGlobalFilterChange !== undefined ? onGlobalFilterChange : setInternalGlobalFilter;
     const { t } = useTranslation();
 
     const translatedColumns = useMemo(() => {
@@ -62,19 +79,19 @@ export function DataTable<TData>({
         onSortingChange: setSorting,
         onGlobalFilterChange: setGlobalFilter,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         globalFilterFn,
-        initialState: {
-            pagination: {
-                pageSize: 10,
-            },
-        },
         state: {
             sorting,
             globalFilter,
+            pagination: {
+                pageIndex: serverPagination?.pageIndex ?? 0,
+                pageSize: serverPagination?.pageSize ?? 10,
+            }
         },
+        manualPagination: !!serverPagination,
+        pageCount: serverPagination?.pageCount ?? -1,
     });
 
     return (
@@ -180,13 +197,23 @@ export function DataTable<TData>({
 
                 <div className="flex flex-col items-center sm:flex-row sm:justify-between px-2">
                     <div className="text-sm text-muted-foreground mb-4 sm:mb-0">
-                        {t("pageInfo", {
-                            current: ` ${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${Math.min(
-                                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-                                data.length
-                            )}`,
-                            total: data.length,
-                        })}
+                        {serverPagination ? (
+                            t("pageInfo", {
+                                current: ` ${serverPagination.pageIndex * serverPagination.pageSize + 1}-${Math.min(
+                                    (serverPagination.pageIndex + 1) * serverPagination.pageSize,
+                                    serverPagination.totalRows || 0
+                                )}`,
+                                total: serverPagination.totalRows,
+                            })
+                        ) : (
+                            t("pageInfo", {
+                                current: ` ${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-${Math.min(
+                                    (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                                    data.length
+                                )}`,
+                                total: data.length,
+                            })
+                        )}
                     </div>
 
                     <div className="flex flex-row space-x-2">
@@ -194,8 +221,8 @@ export function DataTable<TData>({
                             variant="ghost"
                             className="cursor-pointer border-none text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
                             size="sm"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
+                            onClick={() => serverPagination ? serverPagination.previousPage() : table.previousPage()}
+                            disabled={serverPagination ? !serverPagination.canPreviousPage : !table.getCanPreviousPage()}
                         >
                             {t("previous")}
                         </Button>
@@ -203,8 +230,8 @@ export function DataTable<TData>({
                             variant="ghost"
                             size="sm"
                             className="cursor-pointer border-none text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
+                            onClick={() => serverPagination ? serverPagination.nextPage() : table.nextPage()}
+                            disabled={serverPagination ? !serverPagination.canNextPage : !table.getCanNextPage()}
                         >
                             {t("next")}
                         </Button>

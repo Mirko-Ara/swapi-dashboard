@@ -7,5 +7,4 @@ class ResizeObserver {
     disconnect() {}
 }
 
-// @ts-ignore
 global.ResizeObserver = ResizeObserver

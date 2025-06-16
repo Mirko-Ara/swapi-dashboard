@@ -14,16 +14,18 @@ export interface Person {
     species?: string[];
     vehicles?: string[];
     starships?: string[];
+    uid: string;
 }
 
 export interface Starship {
-    name: string,
-    cargo_capacity: string,
-    passengers: string,
-    max_atmosphering_speed: string,
-    model: string,
-    manufacturer: string,
-    pilots?: string[],
-    films?: string[],
-    url: string
+    name: string;
+    cargo_capacity: string;
+    passengers: string;
+    max_atmosphering_speed: string;
+    model: string;
+    manufacturer: string;
+    pilots?: string[];
+    films?: string[];
+    url: string;
+    uid: string;
 }

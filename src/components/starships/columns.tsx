@@ -1,5 +1,6 @@
-import type {ColumnDef, SortingFn} from '@tanstack/react-table';
-import type { Starship } from '@/types';
+import type {ColumnDef, SortingFn, FilterFn} from '@tanstack/react-table';
+import type { Starship} from '@/types';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import { FavoriteTableCell } from '@/components/users/favorite-table-cell';
 import i18n from 'i18next';
 
@@ -19,22 +20,28 @@ const formatNumberForDisplay = (value: string | number | undefined | null): stri
 
 const safeNumberSortingFn: SortingFn<Starship> = (rowA, rowB, columnId) => {
     const parseValue = (value: string | number | string[] | undefined | null): number => {
-        if (value === null || value === undefined || value === "n/a" || value === "unknown" || value === "none" || value === 'unknown') { // Aggiunto 'unknown'
-            return Number.MIN_SAFE_INTEGER;
+        if (value === null || value === undefined || value === "n/a" || value === "unknown" || value === "none" || value === "unlimited") {
+            return -Infinity;
         }
-        const num = parseFloat(String(value));
-        return isNaN(num) ? Number.MIN_SAFE_INTEGER : num;
+        const num = parseFloat(String(value).replace(/,/g, ''));
+        return isNaN(num) ? -Infinity : num;
     };
 
-    const key = columnId as keyof Starship;
+    const a = parseValue(rowA.getValue(columnId));
+    const b = parseValue(rowB.getValue(columnId));
 
-    const valA = parseValue(rowA.original[key]);
-    const valB = parseValue(rowB.original[key]);
-
-    return valA - valB;
+    if (a > b) return 1;
+    if (a < b) return -1;
+    return 0;
 };
 
-
+export const fuzzyFilter: FilterFn<Starship> = (row, columnId, value, addMeta) => {
+    const itemRank = rankItem(row.getValue(columnId), value);
+    addMeta({
+        itemRank,
+    });
+    return itemRank.passed;
+}
 
 
 export const columns: ColumnDef<Starship>[] = [
@@ -50,6 +57,7 @@ export const columns: ColumnDef<Starship>[] = [
         },
         enableSorting: true,
         sortingFn: 'alphanumeric',
+        filterFn: fuzzyFilter,
     },
     {
         accessorKey: 'model',
@@ -59,6 +67,7 @@ export const columns: ColumnDef<Starship>[] = [
         },
         enableSorting: true,
         sortingFn: 'alphanumeric',
+        filterFn: fuzzyFilter,
     },
     {
         accessorKey: 'manufacturer',
@@ -68,6 +77,7 @@ export const columns: ColumnDef<Starship>[] = [
         },
         enableSorting: true,
         sortingFn: 'alphanumeric',
+        filterFn: fuzzyFilter,
     },
     {
         accessorKey: 'passengers',
@@ -76,6 +86,7 @@ export const columns: ColumnDef<Starship>[] = [
             return t('starshipPassengers');
         },
         enableSorting: true,
+        filterFn: fuzzyFilter,
         sortingFn: safeNumberSortingFn,
         cell: ({ row }) => {
             const value = row.original.passengers;
@@ -89,6 +100,7 @@ export const columns: ColumnDef<Starship>[] = [
             return t('starshipCargoCapacity');
         },
         enableSorting: true,
+        filterFn: fuzzyFilter,
         sortingFn: safeNumberSortingFn,
         cell: ({ row }) => {
             const value = row.original.cargo_capacity;
@@ -103,6 +115,7 @@ export const columns: ColumnDef<Starship>[] = [
             return t('starshipMaxAtmospheringSpeed');
         },
         enableSorting: true,
+        filterFn: fuzzyFilter,
         sortingFn: safeNumberSortingFn,
         cell: ({ row }) => {
             const value = row.original.max_atmosphering_speed;

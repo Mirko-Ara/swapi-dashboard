@@ -76,11 +76,6 @@ const cardVariants = {
     visible: {
         opacity: 1,
         y: 0,
-        transition: (index: number) =>({
-            duration: 0.3,
-            delay: index * 0.03,
-            ease: "easeOut",
-        })
     },
     exit: { opacity: 0, y: -20, scale: 0.95 }
 }
@@ -111,7 +106,7 @@ const useHomeWorld = (url: string | null) => {
                 return name === 'Unknown' ? t("unknown") : name || t("unknown");
             } catch (error) {
                 console.error("Error fetching homeworld:", error, url);
-                throw new Error(t("unknown")); // Propaga l'errore per gestione con useQuery
+                throw new Error(t("unknown"));
             }
         },
         enabled: !!url,
@@ -172,6 +167,11 @@ const DetailCard: React.FC<{detail: DetailItem; t: (key: string) => string; inde
             initial="hidden"
             animate="visible"
             exit="hidden"
+            transition={{
+                duration: 0.3,
+                delay: index * 0.03,
+                ease: "easeOut",
+            }}
         >
             <Card className="group relative overflow-hidden transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 border-transparent bg-white dark:bg-gray-900">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300" />

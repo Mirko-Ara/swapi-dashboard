@@ -66,7 +66,7 @@ export function createLogWatcherContext(filterId: LogFilterId) {
                              if(!isNaN(page) && !isNaN(total)) {
                                  setters.setCurrentPage(page);
                                  setters.setTotalPages(total);
-                                 const translatedMessage = i18n.t("fetchingPage", { page, type: filterId === "STARSHIPS" ? i18n.t("starships") : i18n.t("characters"), total });
+                                 const translatedMessage = i18n.t("fetchingPage", { page, type: filterId === "STARSHIPS" ? i18n.t("starships") : i18n.t("characters"), total});
                                  setters.setFetchingMessage(translatedMessage);
                              }
                          }
