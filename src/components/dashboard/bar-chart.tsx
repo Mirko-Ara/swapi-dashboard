@@ -1,42 +1,94 @@
-import {BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { useTranslation } from "react-i18next";
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { toast } from "sonner";
 import { fetchWithRetry } from "@/hooks/use-swapi";
-import { LoaderSpinner } from "@/components/layout/loader-spinner.tsx";
+import { LoaderSpinner } from "@/components/layout/loader-spinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTheme} from "@/hooks/theme-hooks";
+import { useClickOutside} from "@/hooks/use-click-outside";
 
-const fetchTotalRecords = async (): Promise<number> => {
-    const url = "https://www.swapi.tech/api/people";
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-    const data = await res.json();
-    return data.total_records;
+interface CharacterGender {
+    uid: string;
+    name: string;
+    gender: string;
+    url: string;
+}
+
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+const fetchTotalRecordsPeople = async (): Promise<number> => {
+    try {
+        const response = await fetch("https://www.swapi.tech/api/people");
+
+        if (!response.ok) {
+            throw new Error(`Request failed with status: ${response.status}`);
+        }
+
+        const json = await response.json();
+
+        return json.total_records;
+    } catch (error) {
+        console.error("Error fetching total records for people:", error);
+        throw error;
+    }
 };
 
-const sleepTime = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+const fetchTotalPages = async (): Promise<number | null> => {
+    const endpoint = "https://www.swapi.tech/api/people";
+
+    try {
+        const response = await fetch(endpoint);
+
+        if (!response.ok) {
+            const errorMsg = `Error fetching total_pages: ${response.status} ${response.statusText}`;
+
+            if (response.status === 429) {
+                console.warn("Rate limit reached while fetching total_pages.");
+                return null;
+            }
+
+            console.error(errorMsg);
+            return null;
+        }
+
+        const json = await response.json();
+        return json.total_pages ?? null;
+
+    } catch (error) {
+        console.error("Network or parsing error while fetching total_pages:", error);
+        return null;
+    }
+};
+
 
 const fetchGenderDetailsBatch = async (
-    urls: string[],
+    characters: { uid: string, name: string, url: string }[],
     delayBetweenBatches: number,
-): Promise<{ successfulGenders: string[]; failedCount: number }> => {
-    const successfulGenders: string[] = [];
+): Promise<{ successfulGenders: CharacterGender[]; failedCount: number }> => {
+    const successfulGenders: CharacterGender[] = [];
     let currentFailedCount = 0;
     const batchSize = 10;
 
-    for (let i = 0; i < urls.length; i += batchSize) {
-        const batchUrls = urls.slice(i, i + batchSize);
-        const batchPromises = batchUrls.map(async (url) => {
-            const res = await fetchWithRetry(url);
+    for (let i = 0; i < characters.length; i += batchSize) {
+        const batchUrls = characters.slice(i, i + batchSize);
+        const batchPromises = batchUrls.map(async (character) => {
+            const res = await fetchWithRetry(character.url);
             if (!res) {
                 return null;
             }
             try {
                 const data = await res.json();
                 const gender = data.result.properties.gender?.toLowerCase() || 'unknown';
-                return { gender };
+                return {
+                    uid: character.uid,
+                    name: character.name,
+                    gender: gender,
+                    url: character.url
+                };
             } catch (err) {
-                console.error(`Error parsing JSON for ${url} (gender detail):`, err);
+                console.error(`Error parsing JSON for ${character.url} (gender detail):`, err);
                 currentFailedCount++;
                 return null;
             }
@@ -46,44 +98,19 @@ const fetchGenderDetailsBatch = async (
 
         batchResults.forEach((r) => {
             if (r.status === "fulfilled" && r.value !== null) {
-                successfulGenders.push(r.value.gender);
+                successfulGenders.push(r.value);
             } else if (r.status === "rejected") {
                 currentFailedCount++;
             }
         });
 
-        if (i + batchSize < urls.length) {
-            await sleepTime(delayBetweenBatches);
+        if (i + batchSize < characters.length) {
+            await sleep(delayBetweenBatches);
         }
     }
 
     return { successfulGenders, failedCount: currentFailedCount };
 };
-
-const fetchMaxPages = async (): Promise<number | null> => {
-    const endpoint = "https://www.swapi.tech/api/people";
-
-    try {
-        const response = await fetch(endpoint);
-
-        if (!response.ok) {
-            if (response.status === 429) {
-                console.warn("Rate limit reached while fetching total_pages.");
-            } else {
-                console.error(`Failed to fetch total_pages: ${response.status} ${response.statusText}`);
-            }
-            return null;
-        }
-
-        const json = await response.json();
-        return json.total_pages ?? null;
-
-    } catch (error) {
-        console.error("Unexpected error while fetching total_pages:", error);
-        return null;
-    }
-};
-
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#A020F0", "#FF4500", "#7FFF00", "#DDA0DD"];
 
@@ -91,7 +118,7 @@ const useGenderData = (page: number, limit: number, t: (key: string, options?: R
     return useQuery({
         queryKey: ['genderData', page, limit],
         queryFn: async () => {
-            const totalPagesFromApi = await fetchMaxPages() ?? 9;
+            const totalPagesFromApi = await fetchTotalPages() ?? 9;
 
             const url = `https://www.swapi.tech/api/people?page=${page}&limit=${limit}`;
             console.log(`fetching gender page: ${page}, url: ${url}`);
@@ -109,9 +136,15 @@ const useGenderData = (page: number, limit: number, t: (key: string, options?: R
             }
 
             const listJson = await listResponse.json();
-            const characterUrls = listJson.results.map((r: { url: string }) => r.url);
+            const characters = listJson.results.map((r: { uid: string; name: string; url: string }) => {
+                return {
+                    uid: r.uid,
+                    name: r.name,
+                    url: r.url
+                };
+            });
 
-            const { successfulGenders: gendersFromPage, failedCount } = await fetchGenderDetailsBatch(characterUrls, 1000);
+            const { successfulGenders: gendersFromPage, failedCount } = await fetchGenderDetailsBatch(characters, 1000);
 
             if (failedCount > 0) {
                 toast.warning(t("failedGenderCount", { count: failedCount, page: page }));
@@ -127,31 +160,92 @@ const useGenderData = (page: number, limit: number, t: (key: string, options?: R
         },
         staleTime: 1000 * 60 * 60 * 24,
         gcTime: 1000 * 60 * 60 * 24,
-        placeholderData: (prevData) => prevData,
     });
 };
 
 const BarChartComponent = () => {
     const { t } = useTranslation();
     const [isMobile, setIsMobile] = useState(false);
-    const [isSmallMobile, setIsSmallMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
-    const [currentPage, setCurrentPage] = useState(() => {
-        const savedPage = localStorage.getItem('barChartCurrentPage');
-        return savedPage ? parseInt(savedPage, 10) : 1;
-    });
+    const [isSmallMobile, setIsSmallMobile] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
     const [totalRecords, setTotalRecords] = useState<number | null>(null);
+    const [showDataDebug, setShowDataDebug] = useState(false);
     const CHART_FETCH_LIMIT = 10 as const;
     const queryClient = useQueryClient();
+    const [accumulatedData, setAccumulatedData] = useState<CharacterGender[]>([]);
+    const [processedPages, setProcessedPages] = useState<Set<number>>(new Set());
+    const [isInitialized, setIsInitialized] = useState(false);
+    const { theme } = useTheme();
 
-    const [accumulatedGenders, setAccumulatedGenders] = useState<string[]>(() => {
-        const saved = localStorage.getItem('accumulatedGenders');
-        return saved ? JSON.parse(saved) : [];
-    });
-    const hasFetchedAllPages = useRef(false);
-    const processedPages = useRef<Set<number>>(
-        new Set(JSON.parse(localStorage.getItem('processedPages') || '[]'))
-    );
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const debugListRef = useRef<HTMLDivElement>(null);
+
+    useClickOutside(() => {
+        if (showDataDebug) {
+            setShowDataDebug(false);
+        }
+    }, [buttonRef, debugListRef]);
+
+    useEffect(() => {
+        const savedCurrentPage = localStorage.getItem('barChartCurrentPage');
+        const savedAccumulatedData = localStorage.getItem('accumulatedGenders');
+        const savedProcessedPages = localStorage.getItem('processedPagesBarChart');
+
+        if (savedCurrentPage && savedAccumulatedData && savedProcessedPages) {
+            try {
+                const parsedCurrentPage = parseInt(savedCurrentPage, 10);
+                const parsedAccumulatedData: CharacterGender[] = JSON.parse(savedAccumulatedData);
+                const parsedProcessedPagesArray = JSON.parse(savedProcessedPages) as number[];
+                const parsedProcessedPages = new Set(parsedProcessedPagesArray);
+
+                const isAccumulatedDataValid = Array.isArray(parsedAccumulatedData) &&
+                    parsedAccumulatedData.every(item =>
+                        typeof item === 'object' && item !== null &&
+                        'uid' in item && typeof item.uid === 'string' &&
+                        'name' in item && typeof item.name === 'string' &&
+                        'url' in item && typeof item.url === 'string' &&
+                        'gender' in item && typeof item.gender === 'string'
+                    );
+
+                if (!isAccumulatedDataValid) {
+                    console.warn("Invalid or corrupt data found in localStorage. Starting fresh.");
+                    setCurrentPage(1);
+                    setAccumulatedData([]);
+                    setProcessedPages(new Set());
+                } else {
+                    const maxProcessedPage = Math.max(...parsedProcessedPagesArray, 1);
+                    const pageToSet = parsedCurrentPage < maxProcessedPage ? maxProcessedPage : parsedCurrentPage;
+                    setCurrentPage(pageToSet);
+                    setAccumulatedData(parsedAccumulatedData);
+                    setProcessedPages(parsedProcessedPages);
+                    console.log("Loaded data from localStorage", pageToSet, parsedAccumulatedData.length, parsedProcessedPages.size);
+                }
+            } catch (e) {
+                console.error("Failed to parse localStorage data, starting fresh.", e);
+                setCurrentPage(1);
+                setAccumulatedData([]);
+                setProcessedPages(new Set());
+            }
+        } else {
+            setCurrentPage(1);
+            setAccumulatedData([]);
+            setProcessedPages(new Set());
+            console.log("No saved data found, starting fresh.");
+        }
+        fetchTotalRecordsPeople().then(setTotalRecords);
+        setIsInitialized(true);
+    }, []);
+
+
+
+    useEffect(() => {
+        if (!isInitialized) return;
+        localStorage.setItem('barChartCurrentPage', currentPage.toString());
+        localStorage.setItem('accumulatedGenders', JSON.stringify(accumulatedData));
+        localStorage.setItem('processedPagesBarChart', JSON.stringify(Array.from(processedPages)));
+    }, [currentPage, accumulatedData, processedPages, isInitialized]);
+
 
     useEffect(() => {
         queryClient.setDefaultOptions({
@@ -161,25 +255,6 @@ const BarChartComponent = () => {
         });
     }, [queryClient]);
 
-    useEffect(() => {
-        localStorage.setItem('barChartCurrentPage', currentPage.toString());
-    }, [currentPage]);
-
-    useEffect(() => {
-        fetchTotalRecords().then(setTotalRecords);
-    }, []);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (accumulatedGenders.length > 0) {
-                localStorage.setItem('accumulatedGenders', JSON.stringify(accumulatedGenders));
-                localStorage.setItem('processedPages', JSON.stringify([...processedPages.current]));
-            }
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [accumulatedGenders]);
-
     const {
         data: genderData,
         isLoading,
@@ -188,40 +263,44 @@ const BarChartComponent = () => {
     } = useGenderData(currentPage, CHART_FETCH_LIMIT, t);
 
     useEffect(() => {
-        if (genderData && !processedPages.current.has(currentPage)) {
-            setAccumulatedGenders(prev => {
-                const newGenders = genderData.genders;
-                if (newGenders.length > 0) {
-                    processedPages.current.add(currentPage);
-                    return [...prev, ...newGenders];
-                }
-                return prev;
+        if (genderData && genderData.genders && !processedPages.has(currentPage)) {
+            setAccumulatedData(prev => {
+                const existingUids = new Set(prev.map(item => item.uid));
+                const newData = genderData.genders.filter(item => !existingUids.has(item.uid));
+                return [...prev, ...newData];
             });
-            hasFetchedAllPages.current = genderData.hasFetchedAll;
+
+            setProcessedPages(prev => new Set([...prev, currentPage]));
         }
-    }, [genderData, currentPage]);
+    }, [genderData, currentPage, processedPages]);
 
     const handleFetchNextPage = useCallback(() => {
-        if (!isFetching && genderData && currentPage < genderData.totalPages) {
+        if (!isFetching && genderData && currentPage <= (genderData.totalPages || 9)) {
             setCurrentPage(prev => prev + 1);
-        } else if (!isFetching && genderData && currentPage >= genderData.totalPages && genderData.totalPages > 0) {
+        } else if (!isFetching && genderData && currentPage > (genderData.totalPages || 9) && (genderData.totalPages || 9) > 0) {
             toast.info(t("noMorePagesToLoad"));
         }
     }, [isFetching, currentPage, genderData, t]);
 
-    const handleResetData = useCallback(() => {
-        queryClient.removeQueries({ queryKey: ['genderData'] });
+    const handleResetData = useCallback(async () => {
+        console.log("Resetting all data for Bar Chart...");
         setCurrentPage(1);
-        setAccumulatedGenders([]);
-        processedPages.current = new Set();
+        setAccumulatedData([]);
+        setProcessedPages(new Set());
+        localStorage.removeItem('barChartCurrentPage');
         localStorage.removeItem('accumulatedGenders');
-        localStorage.removeItem('processedPages');
-        fetchTotalRecords().then(setTotalRecords);
+        localStorage.removeItem('processedPagesBarChart');
+        fetchTotalRecordsPeople().then(setTotalRecords);
+        try {
+            await queryClient.invalidateQueries({ queryKey: ["genderData"] });
+        } catch (error) {
+            console.error("Error during refetch for Bar Chart:", error);
+        }
         toast.info(t("resettingAndRefetchingData"));
     }, [queryClient, t]);
 
     const genderCount = useCallback(() => {
-        if (accumulatedGenders.length === 0) {
+        if (accumulatedData.length === 0) {
             return {};
         }
 
@@ -234,8 +313,8 @@ const BarChartComponent = () => {
             'n/a': 0
         };
 
-        accumulatedGenders.forEach(gender => {
-            const normalizedGender = gender.toLowerCase();
+        accumulatedData.forEach(item => {
+            const normalizedGender = item.gender?.toLowerCase() || 'unknown';
             if (Object.prototype.hasOwnProperty.call(counts, normalizedGender)) {
                 counts[normalizedGender]++;
             } else {
@@ -243,15 +322,17 @@ const BarChartComponent = () => {
             }
         });
 
+        const filteredCounts: Record<string, number> = Object.fromEntries(
+            Object.entries(counts).filter(([, value]) => value > 0)
+        );
+
         const translatedCounts: Record<string, number> = {};
-        Object.entries(counts).forEach(([key, value]) => {
-            if (value > 0) {
-                translatedCounts[t(`genderTwo.${key}`)] = value;
-            }
+        Object.entries(filteredCounts).forEach(([key, value]) => {
+            translatedCounts[t(`genderTwo.${key}`)] = value;
         });
 
         return translatedCounts;
-    }, [accumulatedGenders, t]);
+    }, [accumulatedData, t]);
 
     const barData = useMemo(() => {
         const counts = genderCount();
@@ -264,6 +345,7 @@ const BarChartComponent = () => {
 
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
+
         const checkScreenSize = () => {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
@@ -286,13 +368,17 @@ const BarChartComponent = () => {
     const bottomMargin = isMobile ? 30 : isTablet ? 40 : 50;
     const fontSize = isSmallMobile ? 9 : isMobile ? 10 : isTablet ? 11 : 12;
 
+
+    const allPagesFetched = processedPages.size > 0 && genderData?.totalPages && processedPages.size >= genderData.totalPages;
+
+
     if (queryError) {
         return (
             <div className="flex flex-col items-center justify-center h-[200px] sm:h-[350px] md:h-[400px] text-red-600">
                 <p>{t("errorFetchingGenderData")}</p>
                 <button
                     onClick={handleResetData}
-                    className="group mt-4 px-4 py-2 rounded-2xl cursor-pointer bg-dark-600 text-white hover:shadow-lg hover:bg-dark-500 transition-shadow duration-200"
+                    className="group mt-4 px-4 py-2 rounded-2xl cursor-pointer text-white hover:scale-[0.98] active:scale-[0.98] hover:bg-dark-500 transition-shadow duration-200 border-2"
                 >
                     {t("retryLoadingData")}
                 </button>
@@ -300,28 +386,35 @@ const BarChartComponent = () => {
         );
     }
 
-    if ((isLoading || isFetching) && accumulatedGenders.length === 0) {
+    if ((isLoading || isFetching) && accumulatedData.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-[200px] sm:h-[350px] md:h-[400px]">
+            <div className="flex flex-col items-center justify-center h-[200px] sm:h-[350px] md:h-[400px] gap-5">
                 <LoaderSpinner size="xl" />
-                <button
-                    onClick={handleResetData}
-                    className="group mt-4 px-4 py-2 rounded-2xl cursor-pointer bg-dark-600 text-white hover:shadow-lg hover:bg-dark-500 transition-shadow duration-200"
-                    disabled={isLoading || isFetching}
-                >
-                    {t("resetAndRefetch")}
-                </button>
+                <p>{t("loadingData")}</p>
             </div>
         );
     }
 
-    if (barData.length === 0 && !isLoading && !isFetching && accumulatedGenders.length === 0) {
+    if (barData.length === 0 && !isLoading && !isFetching && accumulatedData.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-[200px] sm:h-[350px] md:h-[400px]">
-                <span className="text-xs sm:text-sm md:text-md lg:text-lg text-shadow">{t("noGenderDataAvailable")}</span>
+            <div className="flex flex-col items-center justify-center h-[200px] sm:h-[350px] md:h-[400px] p-4 text-center">
+            <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-medium text-gray-700 dark:text-gray-300 mb-6">
+                {t("noGenderDataAvailable")}
+            </span>
                 <button
                     onClick={handleResetData}
-                    className="group mt-4 px-4 py-2 rounded-2xl cursor-pointer bg-dark-600 text-white hover:shadow-lg hover:bg-dark-500 transition-shadow duration-200"
+                    className="
+                    inline-flex items-center justify-center
+                    px-6 py-3
+                    rounded-full
+                    shadow-md hover:shadow-lg
+                    transition-all duration-300 ease-in-out
+                    bg-blue-600 text-white
+                    hover:bg-blue-700
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-dark-900
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    font-semibold text-base
+                "
                     disabled={isLoading || isFetching}
                 >
                     {t("resetAndRefetch")}
@@ -333,12 +426,35 @@ const BarChartComponent = () => {
     return (
         <div className="w-full">
             <div className="text-center mb-4">
-                <p>{t("totalRecordsForCharts")}: {totalRecords || t("loading")}</p>
-                <p>{t("loadedRecords")}: {accumulatedGenders.length}</p>
-                <p>{t("currentPage")}: {currentPage}/{genderData?.totalPages || '?'}</p>
+                <p className="mt-3"><strong>{t("loadedRecords")}: {accumulatedData.length}</strong></p>
+                <p className="mt-2"><strong>{t("currentPage")}: {currentPage} {t("of")} {genderData?.totalPages || 9}</strong></p>
+                <button
+                    ref={buttonRef}
+                    onClick={() => setShowDataDebug(!showDataDebug)}
+                    className="cursor-pointer
+                        transition-transform hover:scale-95 active:scale-90
+                        text-xs sm:text-sm md:text-base rounded-lg
+                        px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 mt-4"
+                >
+                    {showDataDebug ? t("hideDebugData") : t("showDebugData")}
+                </button>
             </div>
 
-            <ResponsiveContainer width="100%" height={chartHeight}>
+            {showDataDebug && (
+                <div
+                    ref={debugListRef}
+                    className="mb-4 p-4 bg-gray-100 dark:bg-black text-xs max-h-40 overflow-y-auto rounded-lg shadow"
+                >
+                    <h4 className="font-bold mb-2">{t("accumulatedData", {accumulated: accumulatedData.length})}</h4>
+                    {accumulatedData.map((item, index) => (
+                        <div key={item.uid} className="mb-1">
+                            {index + 1}. {item.name} (UID: {item.uid}) - {item.gender === 'unknown' ? 'unknown' : item.gender}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            <ResponsiveContainer width="100%" height={chartHeight} className="mt-22">
                 <BarChart
                     data={barData}
                     margin={{
@@ -369,6 +485,9 @@ const BarChartComponent = () => {
                     <Tooltip
                         formatter={(value) => [`${value}`, t("characters")]}
                         contentStyle={{
+                            backgroundColor: theme === 'dark' ? '#ffffff' : '#ffffff',
+                            color: theme === 'dark' ? '#000000' : '#000000',
+                            borderColor: theme === 'dark' ? "#ccc" : '#444',
                             fontSize: isMobile ? '11px' : isTablet ? '12px' : '13px',
                             padding: isMobile ? '4px 6px' : isTablet ? '5px 7px' : '6px 8px'
                         }}
@@ -402,23 +521,21 @@ const BarChartComponent = () => {
                     </span>
                 ) : (
                     <>
-                        {!hasFetchedAllPages.current && genderData && currentPage < genderData.totalPages && (
+                        {!allPagesFetched && genderData && currentPage < (genderData.totalPages || 9) && (
                             <button
                                 onClick={handleFetchNextPage}
-                                className="cursor-pointer inline-flex items-center justify-center rounded-xl border border-border bg-muted text-foreground text-sm font-medium px-4 py-2 shadow-sm hover:bg-muted/70 hover:text-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={isLoading || isFetching || (genderData ? currentPage >= genderData.totalPages : true) || (totalRecords !== null && accumulatedGenders.length >= totalRecords)}
+                                className="hover:scale-[0.98] active:scale-[0.98] font-semibold cursor-pointer inline-flex items-center justify-center rounded-xl border border-border bg-muted text-foreground text-sm font-medium px-4 py-2 shadow-sm hover:bg-muted/70 hover:text-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={isLoading || isFetching}
                             >
                                 {t("fetchNextPage", {
                                     page: currentPage + 1,
-                                    total: genderData?.totalPages || 0
+                                    total: genderData?.totalPages || 9
                                 })}
                             </button>
                         )}
-                        {hasFetchedAllPages.current && genderData?.totalPages && genderData.totalPages > 0 && (
-                            <span className="text-center text-sm text-gray-500">
-                                {t("allGenderDataLoaded", {
-                                    totalRecords: accumulatedGenders.length
-                                })}
+                        {allPagesFetched && (
+                            <span className="text-center text-sm font-medium">
+                                {accumulatedData.length === totalRecords ? <span className="text-green-600">{t("allDataFetched", {dataFetched: accumulatedData.length})}</span> : <span className="text-red-500">{t("notAllDataFetched", {dataFetched: accumulatedData.length})}</span>}
                             </span>
                         )}
                     </>
@@ -426,8 +543,8 @@ const BarChartComponent = () => {
 
                 <button
                     onClick={handleResetData}
-                    className="cursor-pointer inline-flex items-center justify-center rounded-xl border border-border bg-muted/70 text-foreground text-sm font-medium px-4 py-2 shadow-sm hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={(isLoading || isFetching) && accumulatedGenders.length === 0}
+                    className="hover:scale-[0.98] active:scale-[0.98] text-foreground font-semibold cursor-pointer inline-flex items-center justify-center rounded-xl border border-border bg-muted/70 text-sm font-medium px-4 py-2 shadow-sm hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={(isLoading || isFetching)}
                 >
                     {t("resetAndRefetchGenderData")}
                 </button>

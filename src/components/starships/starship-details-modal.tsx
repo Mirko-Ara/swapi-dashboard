@@ -47,7 +47,6 @@ const useStarshipsDetails = (starship: Starship | null) => {
             };
             const pilotsData = await fetchUrls(starship.pilots || []);
             const filmsData = await fetchUrls(starship.films || []);
-            console.clear();
             return {
                 pilots: pilotsData.map((pilot) => ({ name: pilot.status === 'fulfilled' && pilot.value?.result?.properties?.name ? pilot.value.result.properties.name : '' })),
                 films: filmsData.map((film) => ({ title: film.status === 'fulfilled' && film.value?.result?.properties?.title? film.value.result.properties.title : '' }))

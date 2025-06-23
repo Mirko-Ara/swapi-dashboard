@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import {RotateCcw} from "lucide-react";
-import { usePeopleLogWatcher } from '@/context/log-watcher-instances';
+import { usePeopleLogWatcher } from '@/hooks/use-people-log-watcher';
 import {
     Tooltip,
     TooltipTrigger,
@@ -44,11 +44,16 @@ const Dashboard = () => {
 
 
     const handleCacheAction = useCallback(async (): Promise<void> => {
-        console.clear();
         resetLogWatcher();
         setIsProcessingCache(true);
         setCacheMessage(t("processingCache"));
         try {
+            localStorage.removeItem('pieChartCurrentPage');
+            localStorage.removeItem('accumulatedMasses');
+            localStorage.removeItem('processedPagesPieChart');
+            localStorage.removeItem('barChartCurrentPage');
+            localStorage.removeItem('accumulatedGenders');
+            localStorage.removeItem('processedPagesBarChart');
             queryClient.removeQueries({ queryKey: ["genderData"], exact: false });
             queryClient.removeQueries({ queryKey: ["massData"], exact: false });
             queryClient.removeQueries({ queryKey: ["favorites"] });
@@ -105,7 +110,11 @@ const Dashboard = () => {
                                     <Button
                                         variant="outline"
                                         onClick={handleCacheAction}
-                                        className="flex items-center gap-2 cursor-pointer transition-transform hover:scale-95 active:scale-90 text-sm sm:text-base rounded-lg px-4 py-2"
+                                        className="flex items-center justify-center gap-1 sm:gap-2
+                                            cursor-pointer
+                                            transition-transform hover:scale-95 active:scale-90
+                                            text-xs sm:text-sm md:text-base rounded-lg
+                                            px-3 py-1.5 sm:px-4 sm:py-2"
                                         disabled={isProcessingCache}
                                     >
                                         <RotateCcw className="h-4 w-4 transition-transform duration-300 animate-spin" />

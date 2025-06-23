@@ -39,6 +39,7 @@ interface DataTableProps<TData> {
         previousPage: () => void;
         setPageSize: (size: number) => void;
         totalRows: number | undefined;
+        currentPageForDisplay?: number;
     };
     globalFilterValue?: string;
     onGlobalFilterChange?: (value: string) => void;
@@ -60,6 +61,7 @@ export function DataTable<TData>({
     const globalFilter = globalFilterValue !== undefined ? globalFilterValue : internalGlobalFilter;
     const setGlobalFilter = onGlobalFilterChange !== undefined ? onGlobalFilterChange : setInternalGlobalFilter;
     const { t } = useTranslation();
+
 
     const translatedColumns = useMemo(() => {
         return columns.map(column => {
@@ -93,7 +95,6 @@ export function DataTable<TData>({
         manualPagination: !!serverPagination,
         pageCount: serverPagination?.pageCount ?? -1,
     });
-
     return (
         <div className="flex flex-col lg:flex-row gap-6">
             <div className="w-full space-y-4">
@@ -119,7 +120,7 @@ export function DataTable<TData>({
                         >
                             {table.getFilteredRowModel().rows.length > 0
                                 ? t('matchesFound', { count: table.getFilteredRowModel().rows.length })
-                                : t('noResultsFound')}
+                                : t('noResultsFound', { page: serverPagination?.currentPageForDisplay})}
                         </span>
 
                         <Button className="cursor-pointer hover:text-destructive " variant="ghost" size="sm" onClick={() => setGlobalFilter('')}>
@@ -187,7 +188,7 @@ export function DataTable<TData>({
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                                        {t("noResultsFound")}
+                                        {t("noResultsFound", {page: serverPagination?.currentPageForDisplay})}
                                     </TableCell>
                                 </TableRow>
                             )}

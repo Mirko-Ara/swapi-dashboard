@@ -1,4 +1,4 @@
-import { useTheme } from "../providers/theme-hooks";
+import { useTheme } from "@/hooks/theme-hooks";
 import { Sun } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import React from "react";

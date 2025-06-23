@@ -3,7 +3,7 @@ import { LoaderSpinner } from "@/components/layout/loader-spinner";
 import { Card } from "@/components/ui/card";
 import { useTranslation } from 'react-i18next';
 import {useEffect, useState} from "react";
-import type { LogWatcherContextType } from '@/context/create-log-watcher-context';
+import type { LogWatcherContextType } from '@/store/people-log-watcher-slice';
 
 interface LogWatcherProps {
     className?: string,

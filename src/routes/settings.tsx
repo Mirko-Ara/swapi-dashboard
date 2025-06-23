@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTheme } from '@/providers/theme-hooks';
+import { useTheme } from '@/hooks/theme-hooks';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../components/ui/form"
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -390,7 +390,7 @@ const Settings = () => {
                                     </div>
                                 </div>
                             </CardContent>
-                            <CardFooter className="flex justify-end border-t pt-4">
+                            <CardFooter className="flex justify-center items-center md:justify-end border-t pt-4">
                                 <Button className="cursor-pointer" onClick={handleSaveAppearance} disabled={isLoading}>
                                     {isLoading ? t("saving") : t("savePreferences")}
                                 </Button>

@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
-import { useAuth } from "@/providers/theme-hooks"
+import { useAuth } from "@/hooks/use-auth"
 import * as React from "react";
 
 export function ProtectedRoute(Component: React.ComponentType) {
     return function WrappedComponent() {
-        const { isAuthenticated } = useAuth()
+        const { isAuthenticated } = useAuth();
         const navigate = useNavigate()
         useEffect(() => {
             const redirectToLogin = async () => {

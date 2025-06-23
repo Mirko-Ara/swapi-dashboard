@@ -8,7 +8,7 @@ import {Calendar, ChevronLeft, ChevronRight, Eraser, Palette, RotateCcw, Ruler, 
 import {useQueryClient} from "@tanstack/react-query";
 import {Input} from "@/components/ui/input";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@radix-ui/react-tabs";
-import { useStarshipsLogWatcher } from '@/context/log-watcher-instances';
+import { useStarshipsLogWatcher } from '@/hooks/use-starships-log-watcher';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {useFavoritesStarships} from "@/hooks/use-favorites.tsx";
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card.tsx";
@@ -18,12 +18,16 @@ import { useSearch, useNavigate } from '@tanstack/react-router';
 import { DataTable } from '@/components/data-table';
 import {columns, fuzzyFilter} from '@/components/starships/columns';
 import {toast} from "sonner";
+import i18n from "i18next";
+import { Download } from 'lucide-react';
+import { exportCsv, exportToJson} from '@/utils/export';
 
 const ITEMS_PER_PAGE = 10;
 
 export const Starships = () => {
     const { t } = useTranslation();
-    const { page, limit } = useSearch({ from: '/starships'});
+    const { page: pageStarships, limit } = useSearch({ from: '/starships'});
+    const page = useMemo(() => Number(pageStarships) || 1, [pageStarships]);
     const { starships, isLoading, isRefetching, totalStarships, totalPages } = useSwapiStarships(page, limit);
     const navigate = useNavigate({ from: '/starships'});
     const [isMobile, setIsMobile] = useState(false);
@@ -49,6 +53,10 @@ export const Starships = () => {
         return (s[(v - 20) % 10] || s[v] || s[0]);
     }, []);
 
+    const interpolatedPages = useCallback(() => {
+        return i18n.language !== "en" ? page : `${page}${getOrdinalStarshipsFavoritesPagesSuffix(page)}`;
+    }, [getOrdinalStarshipsFavoritesPagesSuffix, page]);
+
     useEffect(() => {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 640);
@@ -73,7 +81,6 @@ export const Starships = () => {
         const wasPageFetched = fetchedPagesRef.current.has(pageKey);
         const pageChanged = previousPagesRef.current !== page;
         if(!wasPageFetched || pageChanged) {
-            console.clear();
             resetLogWatcher();
             seenStarshipsRef.current = new Map();
             fetchedPagesRef.current = new Set();
@@ -91,7 +98,6 @@ export const Starships = () => {
             setSeenStarshipsCount(seenStarshipsRef.current.size);
         }
         previousPagesRef.current = page;
-        setGoToPageInput('');
     }, [page, limit, starships, isLoading, resetLogWatcher]);
 
     const hasFavoritesStarshipsInCurrentPage = useMemo(() => {
@@ -100,7 +106,6 @@ export const Starships = () => {
     }, [starshipsIdArrCurrentPage, favoritesArray]);
 
     const handleRefetch = useCallback(async () => {
-        console.clear();
         resetLogWatcher();
         setGoToPageInput('');
         if(hasFavoritesStarshipsInCurrentPage) {
@@ -262,7 +267,7 @@ export const Starships = () => {
             setGoToPageInput('');
         } else {
             console.warn(`Invalid page number: ${numberOfPage}. Total pages: ${totalPages}`);
-            toast.error(t('invalidPageNumber', { page: numberOfPage, total: totalPages }));
+            toast.error(t('invalidPageNumber', { page: isNaN(numberOfPage) ? '' : numberOfPage, total: totalPages }));
             setGoToPageInput('');
         }
     }, [goToPageInput, navigate, page, t, totalPages]);
@@ -274,6 +279,22 @@ export const Starships = () => {
     }, [page, limit, totalStarships]);
 
     const canPreviousPageStarships = useMemo(() => page > 1, [page]);
+
+    const handleExportStarshipsOrFavorites = useCallback((format: 'csv' | 'json', starshipsOrFavorites: 'starships' | 'favorites') => {
+        const dataToExport = starshipsOrFavorites === 'starships' ? formattedStarships : paginatedFavorites;
+        if(dataToExport.length === 0){
+            toast.info(t('noDataToExport'));
+            return;
+        }
+        const filename = starshipsOrFavorites === 'starships' ? `${t('starships')}_page_${page}` : `${t('favorites')}_page_${currentPageFavorites}`;
+        if(format === 'csv') {
+            exportCsv(dataToExport, filename);
+            toast.success(t('exportSuccess', { format: 'CSV', filename: filename }));
+        }else {
+            exportToJson(dataToExport, filename);
+            toast.success(t('exportSuccess', { format: 'JSON', filename: filename }));
+        }
+    }, [formattedStarships, paginatedFavorites, t, page, currentPageFavorites]);
 
     return (
         <div className="flex flex-col p-8 pt-6 space-y-6 w-full h-full">
@@ -302,40 +323,79 @@ export const Starships = () => {
                         <LogWatcher className="h-[300px]" useWatcherHook={useStarshipsLogWatcher}/>
                     ) : (
                         <>
-                            {totalPages !== undefined && totalPages > 1 && (
-                                <div className="flex items-center justify-center gap-2 mt-4">
-                                    <Tooltip delayDuration={200}>
-                                        <TooltipTrigger asChild>
-                                        <div className="flex items-center">
-                                            <Input
-                                                type="number"
-                                                min="1"
-                                                max={totalPages}
-                                                value={goToPageInput}
-                                                onChange={(e) => setGoToPageInput(e.target.value)}
-                                                placeholder={t("goToPagePlaceholder", { total: totalPages })}
-                                                className="cursor-pointer w-24 text-center rounded-r-none focus-visible:ring-offset-0 focus-visible:ring-0 appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
-                                                onKeyDown={async (e) => {
-                                                    if(e.key === 'Enter') {
-                                                        await goToSpecificPageStarships();
-                                                    }
-                                                }}
-                                            />
-                                            <Button
-                                                onClick={goToSpecificPageStarships}
-                                                disabled={!goToPageInput || isNaN(parseInt(goToPageInput)) || parseInt(goToPageInput) < 1 || (parseInt(goToPageInput) > totalPages) || isLoading || isRefetching}
-                                                className="cursor-pointer rounded-l-none font-semibold hover:scale-[0.98] active:scale-[0.96] transition-transform text-sm sm:text-base"
-                                            >
-                                                {t("goToPageButton")}
-                                            </Button>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" sideOffset={8} className="whitespace-nowrap rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-md">
-                                        <p>{t('goToPageTooltip', { total: totalPages })}</p>
-                                    </TooltipContent>
-                                    </Tooltip>
+                            <div className="flex justify-between items-center w-full mb-4">
+                                {totalPages !== undefined && totalPages > 1 && (
+                                    <div className="flex items-center justify-center gap-2 mt-4">
+                                        <Tooltip delayDuration={0}>
+                                            <TooltipTrigger asChild>
+                                            <div className="flex items-center jutify-center">
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    max={totalPages}
+                                                    value={goToPageInput}
+                                                    onChange={(e) => setGoToPageInput(e.target.value)}
+                                                    placeholder={t("goToPagePlaceholder", { total: totalPages })}
+                                                    className="cursor-pointer
+                                                        w-20 sm:w-24 md:w-28
+                                                        text-center
+                                                        rounded-r-none
+                                                        focus-visible:ring-offset-0 focus-visible:ring-0
+                                                        appearance-none
+                                                        [&::-webkit-outer-spin-button]:appearance-none
+                                                        [&::-webkit-inner-spin-button]:appearance-none
+                                                        [-moz-appearance:textfield]
+                                                        text-sm sm:text-base
+                                                        h-9 sm:h-10
+                                                        py-1 sm:py-2"
+                                                    onKeyDown={async (e) => {
+                                                        if(e.key === 'Enter') {
+                                                            await goToSpecificPageStarships();
+                                                        }
+                                                    }}
+                                                />
+                                                <Button
+                                                    onClick={goToSpecificPageStarships}
+                                                    disabled={!goToPageInput || isNaN(parseInt(goToPageInput)) || parseInt(goToPageInput) < 1 || (parseInt(goToPageInput) > totalPages) || isLoading || isRefetching}
+                                                    className="cursor-pointer
+                                                        rounded-l-none
+                                                        font-semibold
+                                                        hover:scale-[0.98] active:scale-[0.96] transition-transform
+                                                        text-sm sm:text-base
+                                                        h-9 sm:h-10
+                                                  px-3 sm:px-4"
+                                                >
+                                                    {t("goToPageButton")}
+                                                </Button>
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" sideOffset={8} className="whitespace-nowrap rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-md">
+                                            <p>{t('goToPageTooltip', { total: totalPages })}</p>
+                                        </TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                )}
+                                <div className="flex justify-end gap-2 mt-3">
+                                    <Button
+                                        onClick={() => handleExportStarshipsOrFavorites('csv', 'starships')}
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={formattedStarships.length === 0}
+                                        className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2"
+                                    >
+                                        <Download className="mr-2 h-4 w-4"/> {t("exportToCSV")}
+                                    </Button>
+                                    <Button
+                                        onClick={() => handleExportStarshipsOrFavorites('json', 'starships')}
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={formattedStarships.length === 0}
+                                        className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2"
+                                    >
+                                        <Download className="mr-2 h-4 w-4"/> {t("exportToJson")}
+                                    </Button>
                                 </div>
-                            )}
+                            </div>
                             <DataTable
                                 data={formattedStarships || []}
                                 columns={columns}
@@ -353,6 +413,7 @@ export const Starships = () => {
                                     previousPage: goToPreviousPageStarships,
                                     setPageSize: handlePageSizeChangeStarships,
                                     totalRows: totalStarships,
+                                    currentPageForDisplay: page,
                                 }}
                                 globalFilterValue={globalFilterStarships}
                                 onGlobalFilterChange={setGlobalFilterStarships}
@@ -388,46 +449,70 @@ export const Starships = () => {
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {favoritesArray.length > 0 && hasFavoritesStarshipsInCurrentPage && (
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-1 sm:gap-4">
-                                        <Input
-                                            placeholder={t("filterFavoritesPlaceholder")}
-                                            className="max-w-sm"
-                                            onChange={(e) => {
-                                                handleFilterChangeFavorites(e.target.value);
-                                            }}
-                                            value={filterTextFavorites}
-                                        />
-                                        {favoritesArray.length > 0 && hasFavoritesStarshipsInCurrentPage && !filterTextFavorites && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="border-none cursor-pointer h-8 -mr-3 px-2 hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
-                                                onClick={handleClearAllFavorites}
-                                            >
-                                                {!isMobile ? (<div className="flex items-center gap-1 col-span-2 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100">{t('clearAll')}<Trash2 className="h-4 w-4 hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100" /></div>) : <Trash2 className="h-4 w-4 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100" />}
-                                            </Button>
-                                        )}
-                                    </div>
-                                    {filterTextFavorites && (
-                                        <div className="mb-2 text-xs sm:text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in truncate">
-                                            <span className={favoritesStarships.length === 0 ? 'text-destructive' : ''}>
-                                                {favoritesStarships.length > 0
-                                                    ? t('matchesFound', {count: favoritesStarships.length})
-                                                    : t("noResultsFound")
-                                                }
-                                            </span>
-                                            {hasFavoritesStarshipsInCurrentPage && (
-                                                <Button className="cursor-pointer text-xs sm:text-sm hover:text-destructive" variant="ghost" size="sm"
-                                                        onClick={() => setFilterTextFavorites('')}>
-                                                    {t("clearFilter")}
+                            <div className="flex justify-between items-center w-full mb-4">
+                                {favoritesArray.length > 0 && hasFavoritesStarshipsInCurrentPage && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-1 sm:gap-4">
+                                            <Input
+                                                placeholder={t("filterFavoritesPlaceholder")}
+                                                className="max-w-sm"
+                                                onChange={(e) => {
+                                                    handleFilterChangeFavorites(e.target.value);
+                                                }}
+                                                value={filterTextFavorites}
+                                            />
+                                            {favoritesArray.length > 0 && hasFavoritesStarshipsInCurrentPage && !filterTextFavorites && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="border-none cursor-pointer h-8 -mr-3 px-2 hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
+                                                    onClick={handleClearAllFavorites}
+                                                >
+                                                    {!isMobile ? (<div className="flex items-center gap-1 col-span-2 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100">{t('clearAll')}<Trash2 className="h-4 w-4 hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100" /></div>) : <Trash2 className="h-4 w-4 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100" />}
                                                 </Button>
                                             )}
                                         </div>
-                                    )}
-                                </div>
-                            )}
+                                        {filterTextFavorites && (
+                                            <div className="mb-2 text-xs sm:text-sm flex items-center justify-between px-1 text-muted-foreground animate-fade-in truncate">
+                                                <span className={favoritesStarships.length === 0 ? 'text-destructive' : ''}>
+                                                    {favoritesStarships.length > 0
+                                                        ? t('matchesFound', {count: favoritesStarships.length})
+                                                        : t("noResultsFound", {page: page})
+                                                    }
+                                                </span>
+                                                {hasFavoritesStarshipsInCurrentPage && (
+                                                    <Button className="cursor-pointer text-xs sm:text-sm hover:text-destructive" variant="ghost" size="sm"
+                                                            onClick={() => setFilterTextFavorites('')}>
+                                                        {t("clearFilter")}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                {favoritesArray.length > 0 && (
+                                    <div className="flex justify-end gap-2 mt-0">
+                                        <Button
+                                            onClick={() => handleExportStarshipsOrFavorites('csv', 'favorites')}
+                                            variant="ghost"
+                                            size="sm"
+                                            disabled={favoritesStarships.length === 0}
+                                            className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2"
+                                        >
+                                            <Download className="mr-2 h-4 w-4"/> {t("exportToCSV")}
+                                        </Button>
+                                        <Button
+                                            onClick={() => handleExportStarshipsOrFavorites('json', 'favorites')}
+                                            variant="ghost"
+                                            size="sm"
+                                            disabled={favoritesStarships.length === 0}
+                                            className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2"
+                                        >
+                                            <Download className="mr-2 h-4 w-4"/> {t("exportToJson")}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
                             {!(filterTextFavorites && favoritesStarships.length === 0) && (
                                 <Card className="relative border-0 bg-white dark:bg-gray-950 shadow-sm transition-all duration-300 hover:shadow-md">
                                     <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gray-100/10 dark:to-gray-900/10" />
@@ -438,7 +523,7 @@ export const Starships = () => {
                                                     <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-900/30 transition-all duration-300 mt-1 -ml-2">
                                                         <Palette className="h-4 w-4 text-gray-600 dark:text-gray-400"/>
                                                     </div>
-                                                    <span className={isMobile ? "-ml-1 text-base" : "-ml-1"}>{t('favoritesPageTitle', { page: `${page}${getOrdinalStarshipsFavoritesPagesSuffix(page)}`})}</span>
+                                                    <span className={isMobile ? "-ml-1 text-base" : "-ml-1"}>{t('favoritesPageTitle', { page: interpolatedPages() })}</span>
                                                 </span>
                                             </CardTitle>
                                             {hasFavoritesStarshipsInCurrentPage && (
@@ -447,7 +532,7 @@ export const Starships = () => {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="ml-2 border-none cursor-pointer h-8 px-2 hover:bg-destructive/10 hover:text-destructive text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
+                                                            className="ml-2 hover:scale-[0.98] active:scale-[0.95] border-none cursor-pointer h-8 px-2 hover:bg-destructive/10 hover:text-destructive text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
                                                             onClick={handleClearCurrentPageFavorites}
                                                         >
                                                             <Eraser className="h-4 w-4 mr-1 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100" />

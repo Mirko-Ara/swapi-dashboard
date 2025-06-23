@@ -18,14 +18,12 @@ const rootRoute = createRootRoute({
     notFoundComponent: NotFound,
 });
 
-// Public route: login
 const loginRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/login",
     component: Login,
 });
 
-// Protected routes
 const dashboardRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/dashboard",
@@ -69,9 +67,6 @@ const routeTree = rootRoute.addChildren([
 export const router = createRouter({
     routeTree,
     defaultPreload: "intent",
-    context: {
-        auth: undefined!,
-    },
 })
 
 declare module "@tanstack/react-router" {

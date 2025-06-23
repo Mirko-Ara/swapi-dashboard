@@ -1,9 +1,10 @@
 "use client"
 import {useLocation, useNavigate} from "@tanstack/react-router";
-import { useAuth } from "@/providers/theme-hooks";
+import { useAuth } from "@/hooks/use-auth";
 import {useEffect, useState} from "react";
 import {LoaderSpinner} from "@/components/layout/loader-spinner";
 import { useTranslation } from 'react-i18next';
+
 export default function NotFound() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();

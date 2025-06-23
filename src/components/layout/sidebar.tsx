@@ -4,7 +4,7 @@ import { Link, useRouter } from "@tanstack/react-router"
 import { Button } from "../ui/button"
 import { LayoutDashboard, Users, Settings, Rocket, Menu, LogOut, Globe } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
-import { useAuth } from "@/providers/theme-hooks"
+import { useAuth } from "@/hooks/use-auth"
 import { LoaderSpinner } from "@/components/layout/loader-spinner";
 import { useTranslation } from 'react-i18next';
 
