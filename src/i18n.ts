@@ -5,6 +5,11 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            clearAllFavoritesTooltip: "Clear favorites of all pages !",
+            tooltipExportToJsonFavorites: "Export favorites to JSON format for page {{page}}",
+            tooltipExportToCsvFavorites: "Export favorites to CSV format for page {{page}}",
+            tooltipExportToJson: "Export data to JSON format for page {{page}}",
+            tooltipExportToCsv: "Export data to CSV format for page {{page}}",
             exportToJson: "Export to JSON",
             exportToCSV: "Export to CSV",
             exportSuccess: "Export successful for {{filename}} file in {{format}}",
@@ -194,6 +199,11 @@ const resources = {
     },
     it: {
         translation: {
+            clearAllFavoritesTooltip: "Elimina i preferiti di tutte le pagine !",
+            tooltipExportToJsonFavorites: "Esporta i preferiti in formato JSON per la pagina {{page}}",
+            tooltipExportToCsvFavorites: "Esporta i preferiti in formato CSV per la pagina {{page}}",
+            tooltipExportToJson: "Esporta i dati in formato JSON per la pagina {{page}}",
+            tooltipExportToCsv: "Esporta i dati in formato CSV per la pagina {{page}}",
             exportToJson: "Esporta in JSON",
             exportToCSV: "Esporta in CSV",
             exportSuccess: "Esportazione riuscita per il file {{filename}} in formato {{format}}",
@@ -382,6 +392,11 @@ const resources = {
     },
     es: {
         translation: {
+            clearAllFavoritesTooltip: "¡Limpiar favoritos de todas las páginas !",
+            tooltipExportToJsonFavorites: "Exportar favoritos a formato JSON para la página {{page}}",
+            tooltipExportToCsvFavorites: "Exportar favoritos a formato CSV para la página {{page}}",
+            tooltipExportToJson: "Exportar datos a formato JSON para la página {{page}}",
+            tooltipExportToCsv: "Exportar datos a formato CSV para la página {{page}}",
             exportToJson: "Exportar a JSON",
             exportToCSV: "Exportar a CSV",
             exportSuccess: "Exportación exitosa para el archivo {{filename}} en formato {{format}}",

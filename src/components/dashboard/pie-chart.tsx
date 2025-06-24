@@ -1,7 +1,7 @@
 import {Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip} from "recharts";
 import {useTheme} from "@/hooks/theme-hooks";
 import {useTranslation} from "react-i18next";
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {toast} from "sonner";
 import {fetchWithRetry} from "@/hooks/use-swapi";
 import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
@@ -9,6 +9,10 @@ import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {useClickOutside} from "@/hooks/use-click-outside";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+export interface ChartComponentProps {
+    excludedRef: React.RefObject<HTMLDivElement | null>;
+}
 
 interface CharacterMass {
     uid: string;
@@ -190,7 +194,7 @@ const useMassData = (page: number, limit: number, t: (key: string, options?: Rec
     });
 };
 
-const PieChartComponent = () => {
+const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
     const { theme } = useTheme();
     const { t } = useTranslation();
     const [isMobile, setIsMobile] = useState(false);
@@ -211,7 +215,7 @@ const PieChartComponent = () => {
         if (showDataDebug) {
             setShowDataDebug(false);
         }
-    }, [buttonRef, debugListRef]);
+    }, [buttonRef, debugListRef], [excludedRef]);
 
     useEffect(() => {
         const savedCurrentPage = localStorage.getItem('pieChartCurrentPage');

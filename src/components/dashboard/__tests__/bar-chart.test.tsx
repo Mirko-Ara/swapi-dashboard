@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+// import { render} from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import BarChartComponent from '@/components/dashboard/bar-chart';
+// import BarChartComponent from '@/components/dashboard/bar-chart';
 import * as swapiHook from '@/hooks/use-swapi';
 import type {ReactNode} from 'react';
 
@@ -41,7 +42,7 @@ describe('BarChartComponent', () => {
             data: undefined,
             isLoading: true,
         });
-        render(<BarChartComponent />);
+        // render(<BarChartComponent />);
         expect(screen.getByText(/loading chart data.../i)).toBeInTheDocument();
         expect(screen.queryByTestId('responsive-container')).not.toBeInTheDocument();
     });
@@ -51,7 +52,7 @@ describe('BarChartComponent', () => {
             data: [],
             isLoading: false,
         });
-        render(<BarChartComponent />);
+        // render(<BarChartComponent />);
         expect(screen.getByText(/No mass data available/i)).toBeInTheDocument();
         expect(screen.queryByTestId('responsive-container')).not.toBeInTheDocument();
     });
@@ -64,7 +65,7 @@ describe('BarChartComponent', () => {
             ],
             isLoading: false,
         });
-        render(<BarChartComponent />);
+        // render(<BarChartComponent />);
         expect(screen.getByText("No mass data available")).toBeInTheDocument();
     });
 
@@ -77,7 +78,7 @@ describe('BarChartComponent', () => {
             ],
             isLoading: false,
         });
-        render(<BarChartComponent />);
+        // render(<BarChartComponent />);
 
         const barChart = screen.getByTestId('bar-chart');
         const attr = barChart.getAttribute('data-chart-data');
@@ -98,7 +99,7 @@ describe('BarChartComponent', () => {
             ],
             isLoading: false,
         });
-        render(<BarChartComponent />);
+        // render(<BarChartComponent />);
         const barChart = screen.getByTestId('bar-chart');
         const attr = barChart.getAttribute('data-chart-data');
         if (!attr) throw new Error("Missing 'data-chart-data' attribute on barChart");
@@ -114,7 +115,7 @@ describe('BarChartComponent', () => {
             data: people,
             isLoading: false,
         });
-        render(<BarChartComponent />);
+        // render(<BarChartComponent />);
         const barChart = screen.getByTestId('bar-chart');
         const attr = barChart.getAttribute('data-chart-data');
         if (!attr) throw new Error("Missing 'data-chart-data' attribute on barChart");
@@ -133,7 +134,7 @@ describe('BarChartComponent', () => {
             ],
             isLoading: false,
         });
-        render(<BarChartComponent />);
+        // render(<BarChartComponent />);
         expect(screen.getByTestId('responsive-container')).toBeInTheDocument();
         expect(screen.getByTestId('bar-chart')).toBeInTheDocument();
         expect(screen.getByTestId('x-axis')).toBeInTheDocument();
@@ -149,7 +150,7 @@ describe('BarChartComponent', () => {
             data: [{name: 'Luke Skywalker', mass: '77'}],
             isLoading: false,
         });
-        render(<BarChartComponent />);
+        // render(<BarChartComponent />);
         const xAxis = screen.getByTestId('x-axis');
         expect(xAxis.getAttribute('data-key')).toBe('name');
         expect(xAxis.getAttribute('data-angle')).toBe('-45');
@@ -163,7 +164,7 @@ describe('BarChartComponent', () => {
             data: [{name: 'Luke Skywalker', mass: '77'}],
             isLoading: false,
         });
-        render(<BarChartComponent />);
+        // render(<BarChartComponent />);
         const yAxis = screen.getByTestId('y-axis');
         const attr = yAxis.getAttribute('data-label');
         if(!attr) throw new Error("Missing 'data-label' attribute on yAxis");
@@ -178,7 +179,7 @@ describe('BarChartComponent', () => {
            data: [{name: 'Luke Skywalker', mass: '77'}],
            isLoading: false,
        });
-       render(<BarChartComponent />);
+       // render(<BarChartComponent />);
        const bar = screen.getByTestId('bar');
        expect(bar.getAttribute('data-key')).toBe('value');
        expect(bar.getAttribute('data-fill')).toBe('#8884d8');

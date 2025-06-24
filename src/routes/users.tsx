@@ -357,31 +357,45 @@ const Users = () => {
                                                     </Button>
                                                 </div>
                                             </TooltipTrigger>
-                                            <TooltipContent side="top" sideOffset={8} className="whitespace-nowrap max-w-md rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg">
+                                            <TooltipContent side="top" sideOffset={0} className="whitespace-nowrap max-w-md rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg">
                                                 <p>{t('goToPageTooltip', { total: totalPages })}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </div>
                                 )}
-                                <div className="flex justify-end gap-2 mt-3">
-                                    <Button
-                                        onClick={() => handleExportPeopleOrFavorites('csv', 'people')}
-                                        variant="ghost"
-                                        size="sm"
-                                        disabled={people.length === 0}
-                                        className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2"
-                                    >
-                                        <Download className="mr-2 h-4 w-4"/> {t("exportToCSV")}
-                                    </Button>
-                                    <Button
-                                        onClick={() => handleExportPeopleOrFavorites('json', 'people')}
-                                        variant="ghost"
-                                        size="sm"
-                                        disabled={people.length === 0}
-                                        className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2"
-                                    >
-                                        <Download className="mr-2 h-4 w-4"/> {t("exportToJson")}
-                                    </Button>
+                                <div className="flex flex-wrap justify-end gap-2 mt-3 sm:flex-nowrap">
+                                    <Tooltip delayDuration={0}>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                onClick={() => handleExportPeopleOrFavorites('csv', 'people')}
+                                                variant="ghost"
+                                                size="sm"
+                                                disabled={people.length === 0}
+                                                className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+                                            >
+                                                <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {t("exportToCSV")}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" sideOffset={8} className="whitespace-nowrap max-w-md rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg">
+                                            <p>{t('tooltipExportToCsv', { page: page })}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip delayDuration={0}>
+                                        <TooltipTrigger asChild>
+                                        <Button
+                                            onClick={() => handleExportPeopleOrFavorites('json', 'people')}
+                                            variant="ghost"
+                                            size="sm"
+                                            disabled={people.length === 0}
+                                            className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+                                        >
+                                            <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {t("exportToJson")}
+                                        </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" sideOffset={8} className="whitespace-nowrap max-w-md rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg">
+                                            <p>{t('tooltipExportToJson', { page: page })}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
                                 </div>
                             </div>
 
@@ -452,14 +466,21 @@ const Users = () => {
                                                 value={filterTextFavorites}
                                             />
                                             {favoritesArray.length > 0 && hasFavoriteInCurrentPage && !filterTextFavorites && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="border-none cursor-pointer h-8 -mr-3 px-2 hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
-                                                    onClick={handleClearAllFavorites}
-                                                >
-                                                    {!isMobile ? (<div className="flex items-center gap-1 col-span-2 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100">{t('clearAll')}<Trash2 className="h-4 w-4 hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100" /></div>) : <Trash2 className="h-4 w-4 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100" />}
-                                                </Button>
+                                                <Tooltip delayDuration={0}>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="border-none cursor-pointer h-8 -mr-3 px-2 hover:bg-destructive/10 hover:text-destructive text-xs sm:text-sm sm:px-4 relative z-10 transition-all duration-300 ease-in-out"
+                                                            onClick={handleClearAllFavorites}
+                                                        >
+                                                            {!isMobile ? (<div className="flex items-center gap-1 col-span-2 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100">{t('clearAll')}<Trash2 className="h-4 w-4 hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100" /></div>) : <Trash2 className="h-4 w-4 text-destructive animate-pulse hover:scale-[0.98] active:scale-[0.95] transition-transform transform duration-100" />}
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="top" sideOffset={0} className="rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-xs">
+                                                        <p>{t('clearAllFavoritesTooltip')}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
                                             )}
                                         </div>
                                         {filterTextFavorites && (
@@ -482,25 +503,39 @@ const Users = () => {
                                     </div>
                                 )}
                                 {favoritesArray.length > 0 && (
-                                    <div className="flex justify-end gap-2 mt-0">
-                                        <Button
-                                            onClick={() => handleExportPeopleOrFavorites('csv', 'favorites')}
-                                            variant="ghost"
-                                            size="sm"
-                                            disabled={favoriteUsers.length === 0}
-                                            className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2"
-                                        >
-                                            <Download className="mr-2 h-4 w-4"/> {t("exportToCSV")}
-                                        </Button>
-                                        <Button
-                                            onClick={() => handleExportPeopleOrFavorites('json', 'favorites')}
-                                            variant="ghost"
-                                            size="sm"
-                                            disabled={favoriteUsers.length === 0}
-                                            className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2"
-                                        >
-                                            <Download className="mr-2 h-4 w-4"/> {t("exportToJson")}
-                                        </Button>
+                                    <div className="flex flex-wrap justify-end gap-2 mt-0 sm:flex-nowrap">
+                                        <Tooltip delayDuration={0}>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    onClick={() => handleExportPeopleOrFavorites('csv', 'favorites')}
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    disabled={favoriteUsers.length === 0}
+                                                    className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+                                                >
+                                                    <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {t("exportToCSV")}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" sideOffset={8} className="rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-xs">
+                                                <p>{t('tooltipExportToCsvFavorites', { page: page })}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip delayDuration={0}>
+                                            <TooltipTrigger asChild>
+                                            <Button
+                                                onClick={() => handleExportPeopleOrFavorites('json', 'favorites')}
+                                                variant="ghost"
+                                                size="sm"
+                                                disabled={favoriteUsers.length === 0}
+                                                className="border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+                                            >
+                                                <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {t("exportToJson")}
+                                            </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" sideOffset={8} className="rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-xs">
+                                                <p>{t('tooltipExportToJsonFavorites', { page: page })}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
                                     </div>
                                 )}
                             </div>
@@ -530,7 +565,7 @@ const Users = () => {
                                                             {!isMobile && t('clearCurrentPage')}
                                                         </Button>
                                                     </TooltipTrigger>
-                                                    <TooltipContent side="top" sideOffset={8} className="rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-xs">
+                                                    <TooltipContent side="top" sideOffset={-5} className="rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-xs">
                                                         <p>{t('clearCurrentPageTooltip')}</p>
                                                     </TooltipContent>
                                                 </Tooltip>

@@ -39,4 +39,3 @@ export const LogWatcher = ({ className = "", useWatcherHook}: LogWatcherProps) =
         </Card>
     );
 }
-

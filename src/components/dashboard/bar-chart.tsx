@@ -7,6 +7,7 @@ import { LoaderSpinner } from "@/components/layout/loader-spinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTheme} from "@/hooks/theme-hooks";
 import { useClickOutside} from "@/hooks/use-click-outside";
+import type { ChartComponentProps} from "@/components/dashboard/pie-chart";
 
 interface CharacterGender {
     uid: string;
@@ -163,7 +164,7 @@ const useGenderData = (page: number, limit: number, t: (key: string, options?: R
     });
 };
 
-const BarChartComponent = () => {
+const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
     const { t } = useTranslation();
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -185,7 +186,7 @@ const BarChartComponent = () => {
         if (showDataDebug) {
             setShowDataDebug(false);
         }
-    }, [buttonRef, debugListRef]);
+    }, [buttonRef, debugListRef], [excludedRef]);
 
     useEffect(() => {
         const savedCurrentPage = localStorage.getItem('barChartCurrentPage');

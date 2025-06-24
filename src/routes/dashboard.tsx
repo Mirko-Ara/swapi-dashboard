@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, {useState, useCallback, useRef} from 'react';
 import {type QueryKey, type QueryState, useQueryClient} from '@tanstack/react-query';
 import { CityTime } from '../components/dashboard/city-time';
 import PieChartComponent from '../components/dashboard/pie-chart';
@@ -16,6 +16,11 @@ import {
     TooltipContent,
 } from "@/components/ui/tooltip";
 import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
+import type {ChartComponentProps} from "@/components/dashboard/pie-chart";
+
+
+const MemoizedPieChartComponent = React.memo((props: ChartComponentProps) => <PieChartComponent {...props} />);
+const MemoizedBarChartComponent = React.memo((props: ChartComponentProps) => <BarChartComponent {...props} />);
 
 const CITY_CONFIG = [
     { city: "London", timeZone: "Europe/London", label: "London" },
@@ -41,7 +46,8 @@ const Dashboard = () => {
     const queryClient = useQueryClient();
     const { t } = useTranslation();
     const { resetLogWatcher } = usePeopleLogWatcher();
-
+    const pieChartRef = useRef<HTMLDivElement>(null);
+    const barChartRef = useRef<HTMLDivElement>(null);
 
     const handleCacheAction = useCallback(async (): Promise<void> => {
         resetLogWatcher();
@@ -65,9 +71,9 @@ const Dashboard = () => {
             await queryClient.invalidateQueries({ queryKey: ["swapi-people"] });
             await queryClient.invalidateQueries({ queryKey: ["swapi-starships"] });
             setCacheMessage(t("dataCacheRefreshed"));
-            setCacheMessage(t("errorProcessingCache"));
         } catch (error) {
             console.error("Error processing cache:", error);
+            setCacheMessage(t("errorProcessingCache"));
         } finally {
             setTimeout(() => {
                 setIsProcessingCache(false);
@@ -144,8 +150,10 @@ const Dashboard = () => {
                         />
                     ))}
                 </div>
-                <div className="grid gap-2 sm:gap-4 sm:grid-cols-1 md:grid-cols-2">
-                    <Card>
+                <div
+                    className="grid gap-2 sm:gap-4 sm:grid-cols-1 md:grid-cols-2"
+                >
+                    <Card ref={pieChartRef}>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm sm:text-base">{t("characterMassComparison")}</CardTitle>
                         </CardHeader>
@@ -159,13 +167,13 @@ const Dashboard = () => {
                                 </div>
                             ) : (
                                 <div className="w-full overflow-hidden -mt-15 -ml-0.5">
-                                    <PieChartComponent />
+                                    <MemoizedPieChartComponent excludedRef={barChartRef}/>
                                 </div>
                             )}
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card ref={barChartRef}>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm sm:text-base">{t("genderDistribution")}</CardTitle>
                         </CardHeader>
@@ -179,7 +187,7 @@ const Dashboard = () => {
                                 </div>
                             ) : (
                                 <div className="w-full overflow-hidden -mt-8 -ml-0.5">
-                                    <BarChartComponent />
+                                    <MemoizedBarChartComponent excludedRef={pieChartRef}/>
                                 </div>
                             )}
                         </CardContent>
