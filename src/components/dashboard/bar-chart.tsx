@@ -284,6 +284,7 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
     }, [isFetching, currentPage, genderData, t]);
 
     const handleResetData = useCallback(async () => {
+        toast.info(t("resettingAndRefetchingData"));
         console.log("Resetting all data for Bar Chart...");
         setCurrentPage(1);
         setAccumulatedData([]);
@@ -297,7 +298,6 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
         } catch (error) {
             console.error("Error during refetch for Bar Chart:", error);
         }
-        toast.info(t("resettingAndRefetchingData"));
     }, [queryClient, t]);
 
     const genderCount = useCallback(() => {
@@ -486,8 +486,8 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
                     <Tooltip
                         formatter={(value) => [`${value}`, t("characters")]}
                         contentStyle={{
-                            backgroundColor: theme === 'dark' ? '#ffffff' : '#ffffff',
-                            color: theme === 'dark' ? '#000000' : '#000000',
+                            backgroundColor: '#ffffff',
+                            color: '#000000',
                             borderColor: theme === 'dark' ? "#ccc" : '#444',
                             fontSize: isMobile ? '11px' : isTablet ? '12px' : '13px',
                             padding: isMobile ? '4px 6px' : isTablet ? '5px 7px' : '6px 8px'
@@ -496,7 +496,7 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
                     <Legend
                         verticalAlign="top"
                         height={isMobile ? 30 : isTablet ? 33 : 36}
-                        wrapperStyle={{ fontSize: isMobile ? '10px' : '12px' }}
+                        wrapperStyle={{ fontSize: isMobile ? '10px' : '12px'}}
                     />
                     <Bar
                         dataKey="value"

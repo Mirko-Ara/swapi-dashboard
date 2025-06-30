@@ -5,6 +5,17 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            filterSpecies: "Filter species...",
+            allSpecies: 'All Species',
+            speciesPageTitle: 'SWAPI Species',
+            averageHeight: "Average Height",
+            averageLifespan: "Average Lifespan",
+            designation: "Designation",
+            dataSpeciesLoadedSuccessfully: "Species data for page {{page}} loaded successfully!",
+            failedSpeciesCount: "{{count}} species of page {{page}} failed to load.",
+            errorLoadingDataSpeciesForPage: "Error loading species data for page {{page}}!",
+            classification: "Classification",
+            speciesName: "Name",
             clearAllFavoritesTooltip: "Clear favorites of all pages !",
             tooltipExportToJsonFavorites: "Export favorites to JSON format for page {{page}}",
             tooltipExportToCsvFavorites: "Export favorites to CSV format for page {{page}}",
@@ -199,6 +210,17 @@ const resources = {
     },
     it: {
         translation: {
+            filterSpecies: "Filtra specie...",
+            allSpecies: 'Tutte le Specie',
+            speciesPageTitle: 'Specie SWAPI',
+            averageHeight: "Altezza Media",
+            averageLifespan: "Durata Media della Vita",
+            designation: "Designazione",
+            dataSpeciesLoadedSuccessfully: "Specie dei dati per la pagina {{page}} caricati con successo!",
+            failedSpeciesCount: "{{count}} specie della pagina {{page}} non sono state caricate.",
+            errorLoadingDataSpeciesForPage: "Errore nel caricamento dei dati delle specie per la pagina {{page}}!",
+            classification: "Classificazione",
+            speciesName: "Nome",
             clearAllFavoritesTooltip: "Elimina i preferiti di tutte le pagine !",
             tooltipExportToJsonFavorites: "Esporta i preferiti in formato JSON per la pagina {{page}}",
             tooltipExportToCsvFavorites: "Esporta i preferiti in formato CSV per la pagina {{page}}",
@@ -392,6 +414,17 @@ const resources = {
     },
     es: {
         translation: {
+            filterSpecies: "Filtrar especies...",
+            allSpecies: 'Todas las Especies',
+            speciesPageTitle: 'Especies SWAPI',
+            averageHeight: "Altura Media",
+            averageLifespan: "Esperanza de Vida Media",
+            designation: "Designación",
+            dataSpeciesLoadedSuccessfully: "¡Datos de especies para la página {{page}} cargados con éxito!",
+            failedSpeciesCount: "¡{{count}} especies de la página {{page}} no se pudieron cargar!",
+            errorLoadingDataSpeciesForPage: "¡Error al cargar los datos de especies para la página {{page}}!",
+            classification: "Clasificación",
+            speciesName: "Nombre",
             clearAllFavoritesTooltip: "¡Limpiar favoritos de todas las páginas !",
             tooltipExportToJsonFavorites: "Exportar favoritos a formato JSON para la página {{page}}",
             tooltipExportToCsvFavorites: "Exportar favoritos a formato CSV para la página {{page}}",

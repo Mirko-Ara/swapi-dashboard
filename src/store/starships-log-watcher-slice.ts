@@ -18,13 +18,13 @@ const starshipsLogWatcherSlice = createSlice({
     initialState,
     reducers: {
         setStarshipsCurrentPage: (state, action: PayloadAction<number | null>): void => {
-            state.currentPage = action.payload;
+            return void(state.currentPage = action.payload);
         },
         setStarshipsTotalPages: (state, action: PayloadAction<number | null>): void => {
-            state.totalPages = action.payload;
+            return void(state.totalPages = action.payload);
         },
         setStarshipsFetchingMessage: (state, action: PayloadAction<string>): void => {
-            state.fetchingMessage = action.payload;
+            return void(state.fetchingMessage = action.payload);
         },
         resetStarshipsLogWatcher: (state): void => {
             state.currentPage = null;

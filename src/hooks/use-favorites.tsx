@@ -2,11 +2,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const FAVORITES_PEOPLE_QUERY_KEY = ['favorites'] as const;
 const FAVORITES_STARSHIPS_QUERY_KEY = ['favoritesStarships'] as const;
+const FAVORITES_SPECIES_QUERY_KEY = ['favoritesSpecies'] as const;
 
 interface FavoritesPeople {
     favorites: Record<string, boolean>;
     favoritesArray: string[];
     toggleFavoritePeople: (id: string) => void;
+    clearAll: () => void;
+    clearCurrentPageFavorites: (idsToRemove: string[]) => void;
+}
+
+interface FavoritesSpecies {
+    favorites: Record<string, boolean>;
+    favoritesArray: string[];
+    toggleFavoriteSpecies: (id: string) => void;
     clearAll: () => void;
     clearCurrentPageFavorites: (idsToRemove: string[]) => void;
 }
@@ -117,6 +126,46 @@ export function useFavoritesStarships(): FavoritesStarships {
         favorites,
         favoritesArray,
         toggleFavoriteStarships,
+        clearAll,
+        clearCurrentPageFavorites
+    };
+}
+
+export function useFavoritesSpecies(): FavoritesSpecies {
+    const queryClient = useQueryClient();
+    const {data: favorites = {}} = useQuery<Record<string, boolean>>({
+        queryKey: FAVORITES_SPECIES_QUERY_KEY,
+        queryFn: async () => {
+            return {};
+        },
+        staleTime: Infinity,
+        gcTime: Infinity,
+    });
+    const mutation = useMutation({
+        mutationFn: async (newFavorites: Record<string, boolean>) => {
+            return newFavorites;
+        },
+        onSuccess: (data) => {
+            queryClient.setQueryData(FAVORITES_SPECIES_QUERY_KEY, data);
+        }
+    });
+    const toggleFavoriteSpecies = (id: string) => {
+        mutation.mutate(toggleFavorite(favorites, id));
+    };
+
+    const clearAll = () => {
+        mutation.mutate({});
+    };
+
+    const clearCurrentPageFavorites = (idsToRemove: string[]) => {
+        mutation.mutate(removeCurrentPageFavoritesByIds(favorites, idsToRemove));
+    }
+
+    const favoritesArray = Object.keys(favorites);
+    return {
+        favorites,
+        favoritesArray,
+        toggleFavoriteSpecies,
         clearAll,
         clearCurrentPageFavorites
     };

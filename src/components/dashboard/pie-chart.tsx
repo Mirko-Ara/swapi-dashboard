@@ -316,6 +316,7 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
     }, [isFetching, currentPage, massData, t]);
 
     const handleResetData = useCallback(async () => {
+        toast.info(t("resettingAndRefetchingData"));
         console.log("Resetting all data...");
         setCurrentPage(1);
         setAccumulatedData([]);
@@ -329,7 +330,6 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
         } catch (error) {
             console.error("Error during refetch:", error);
         }
-        toast.info(t("resettingAndRefetchingData"));
     }, [queryClient, t]);
 
     const massRangeCount = useCallback(() => {
@@ -453,7 +453,7 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
         <div className="w-full">
             <div className="text-center mb-4">
                 <p className="mt-10"><strong>{t("loadedRecords")}: {accumulatedData.length}</strong></p>
-                <p className="mt-2"><strong>{t("currentPage")}: {currentPage} {t("of")} {massData?.totalPages || '?'}</strong></p>
+                <p className="mt-2"><strong>{t("currentPage")}: {currentPage} {t("of")} {massData?.totalPages || '9'}</strong></p>
                 <button
                     ref={buttonRef}
                     onClick={() => setShowDataDebug(!showDataDebug)}

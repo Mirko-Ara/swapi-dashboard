@@ -1,20 +1,20 @@
-import {useFavoritesPeople, useFavoritesStarships} from '@/hooks/use-favorites';
+import {useFavoritesPeople, useFavoritesStarships, useFavoritesSpecies} from '@/hooks/use-favorites';
 import { useTranslation } from 'react-i18next';
 import React, { useState} from "react";
 
 interface FavoriteTableCellProps {
     id: string;
     name: string;
-    favoritesKey: "PEOPLE" | "STARSHIPS";
+    favoritesKey: "PEOPLE" | "STARSHIPS" | "SPECIES";
 }
 
 export function FavoriteTableCell({id, name, favoritesKey}: FavoriteTableCellProps) {
     const { t } = useTranslation();
     const { favorites: peopleFavorites, toggleFavoritePeople } = useFavoritesPeople();
     const { favorites: starshipsFavorites, toggleFavoriteStarships } = useFavoritesStarships();
-    const favorites = favoritesKey === "PEOPLE" ? peopleFavorites : starshipsFavorites;
-    const toggleFavorite = favoritesKey === "PEOPLE" ? toggleFavoritePeople : toggleFavoriteStarships;
-    
+    const { favorites: speciesFavorites, toggleFavoriteSpecies } = useFavoritesSpecies();
+    const favorites = favoritesKey === "PEOPLE" ? peopleFavorites : favoritesKey === "STARSHIPS" ? starshipsFavorites : speciesFavorites;
+    const toggleFavorite = favoritesKey === "PEOPLE" ? toggleFavoritePeople : favoritesKey === "STARSHIPS" ? toggleFavoriteStarships : toggleFavoriteSpecies;
     const [isClicked, setIsClicked] = useState(false);
     const isFavorite = favorites[id];
 

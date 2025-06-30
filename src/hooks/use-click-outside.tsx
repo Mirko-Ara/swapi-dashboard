@@ -25,6 +25,13 @@ export const useClickOutside = (
                }
            }
 
+            if (
+                event.clientX > document.documentElement.clientWidth ||
+                event.clientY > document.documentElement.clientHeight
+            ) {
+                return;
+            }
+
              callback();
         };
 

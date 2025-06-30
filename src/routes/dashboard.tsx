@@ -64,12 +64,15 @@ const Dashboard = () => {
             queryClient.removeQueries({ queryKey: ["massData"], exact: false });
             queryClient.removeQueries({ queryKey: ["favorites"] });
             queryClient.removeQueries({ queryKey: ['favoritesStarships']});
+            queryClient.removeQueries({ queryKey: ['favoritesSpecies']});
             queryClient.removeQueries({ queryKey: ['swapi-info-person'], exact: false });
             queryClient.removeQueries({ queryKey: ['swapi-info-starship-extra'], exact: false });
+            queryClient.removeQueries({ queryKey: ['swapi-info-species-extra'], exact: false });
             queryClient.removeQueries({ queryKey: ['homeworld'], exact: false });
             setCacheMessage(t("refreshingDataCache"));
             await queryClient.invalidateQueries({ queryKey: ["swapi-people"] });
             await queryClient.invalidateQueries({ queryKey: ["swapi-starships"] });
+            await queryClient.invalidateQueries({ queryKey: ["swapi-species"] });
             setCacheMessage(t("dataCacheRefreshed"));
         } catch (error) {
             console.error("Error processing cache:", error);

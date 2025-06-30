@@ -9,6 +9,12 @@ import {
     setStarshipsTotalPages,
     setStarshipsFetchingMessage,
 } from '@/store/starships-log-watcher-slice';
+import {
+    setSpeciesCurrentPage,
+    setSpeciesTotalPages,
+    setSpeciesFetchingMessage,
+} from '@/store/species-log-watcher-slice';
+
 import i18n from '../i18n';
 import type { RootState, AppDispatch } from '@/store/store-index';
 
@@ -32,6 +38,12 @@ const logActionsMap = {
         setFetchingMessage: setStarshipsFetchingMessage,
         typeLabel: 'starships',
     },
+    SPECIES: {
+        setCurrentPage: setSpeciesCurrentPage,
+        setTotalPages: setSpeciesTotalPages,
+        setFetchingMessage: setSpeciesFetchingMessage,
+        typeLabel: 'species',
+    }
 };
 
 export const initializeLogInterceptor = (store: Store<RootState, ReturnType<AppDispatch>>) => {
@@ -52,7 +64,7 @@ export const initializeLogInterceptor = (store: Store<RootState, ReturnType<AppD
                 const content = message.substring("SWAPI_FETCH_PAGE:".length);
                 const parts = content.split(":");
                 if (parts.length >= 3) {
-                    const filterId = parts[0] as 'PEOPLE' | 'STARSHIPS';
+                    const filterId = parts[0] as 'PEOPLE' | 'STARSHIPS' | 'SPECIES';
                     const page = parseInt(parts[1], 10);
                     const total = parseInt(parts[2], 10);
 

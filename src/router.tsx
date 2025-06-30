@@ -12,6 +12,7 @@ import NotFound from "./components/not-found"
 import { ProtectedRoute } from "./components/protected-route"
 import { Starships } from "./routes/starships";
 import { z  } from "zod";
+import {Species}  from "./routes/species";
 
 const rootRoute = createRootRoute({
     component: App,
@@ -54,7 +55,17 @@ const starshipsRoute = createRoute({
         page: z.number().int().min(1).catch(1),
         limit: z.number().int().min(1).max(10).catch(10),
     }),
-})
+});
+
+const speciesRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/species",
+    component: ProtectedRoute(Species),
+    validateSearch: z.object({
+            page: z.number().int().min(1).catch(1),
+            limit: z.number().int().min(1).max(10).catch(10),
+    })
+});
 
 const routeTree = rootRoute.addChildren([
     loginRoute,
@@ -62,12 +73,13 @@ const routeTree = rootRoute.addChildren([
     usersRoute,
     settingsRoute,
     starshipsRoute,
-])
+    speciesRoute
+]);
 
 export const router = createRouter({
     routeTree,
     defaultPreload: "intent",
-})
+});
 
 declare module "@tanstack/react-router" {
     interface Register {

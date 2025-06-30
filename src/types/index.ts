@@ -29,3 +29,19 @@ export interface Starship {
     url: string;
     uid: string;
 }
+
+export interface Species {
+    name: string;
+    classification: string;
+    designation: string;
+    average_height: string;
+    average_lifespan: string;
+    hair_colors: string;
+    eye_colors: string;
+    people?: string[];
+    skin_colors: string;
+    language: string;
+    homeworld: string;
+    url: string;
+    uid: string;
+}
