@@ -3,7 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import type { Starship } from '@/types';
 import { useTranslation } from 'react-i18next';
-import{useMemo} from "react";
+import {useMemo} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
 import {useFavoritesStarships} from "@/hooks/use-favorites.tsx";
@@ -76,26 +76,23 @@ const formatNumberForDisplay = (value: string | number | undefined | null, unit?
     return unit ? `${formatted} ${unit}` : formatted;
 };
 
-
-
 export const StarshipDetailsModal = ({ starship, isOpen, onClose }: StarshipDetailsModalProps) => {
     const { t } = useTranslation();
-    const { data: extraDetails, isLoading: loadingExtra} = useStarshipsDetails(starship);
     const {favorites} = useFavoritesStarships();
-
+    const { data: extraDetails, isLoading: loadingExtra} = useStarshipsDetails(starship);
     const isFavorite = useMemo(() => {
         if(!starship?.url) return false;
         const starshipId = starship.url.split("/").slice(-1)[0];
         return favorites[starshipId]
     }, [starship?.url, favorites]);
 
-    if (!starship) {
+    if (!isOpen || !starship) {
         return null;
     }
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px] md:max-w-[600px] lg:max-w-[700px]">
+            <DialogContent className="sm:max-w-[425px] md:max-w-[600px] lg:max-w-[700px] transition-all duration-300 ease-out">
                 <DialogHeader>
                     <DialogTitle className="font-semibold italic flex items-center gap-2">{t('starshipDetailsTitle')}
                         <Heart className={`h-6 w-6 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`}/>
@@ -104,7 +101,7 @@ export const StarshipDetailsModal = ({ starship, isOpen, onClose }: StarshipDeta
                         {t('starshipDetailsDescription', { name: starship.name })}
                     </DialogDescription>
                 </DialogHeader>
-                <ScrollArea className="h-[400px] max-h-[60vh] p-4">
+                <ScrollArea className="h-[400px] max-h-[60vh] p-4 transition-all duration-300 ease-out">
                     <div className="grid gap-y-4 py-4">
                         <div className="grid grid-cols-2 items-start gap-4">
                             <p className="text-sm leading-none font-semibold italic">{t('starshipName')}:</p>

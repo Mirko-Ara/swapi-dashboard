@@ -111,7 +111,6 @@ const Dashboard = () => {
             <div className="flex-1 space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center sm:text-left ">{t('dashboardPageTitle')}</h2>
-
                     {hasCache && (
                         <div className="flex flex-col items-center sm:items-end gap-2">
                             <Tooltip delayDuration={200}>

@@ -1,4 +1,4 @@
-import {Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip} from "recharts";
+import {Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip} from "recharts";
 import {useTheme} from "@/hooks/theme-hooks";
 import {useTranslation} from "react-i18next";
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
@@ -7,6 +7,10 @@ import {fetchWithRetry} from "@/hooks/use-swapi";
 import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {useClickOutside} from "@/hooks/use-click-outside";
+import {exportCsv, exportToJson} from "@/utils/export.ts";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {Button} from "@/components/ui/button.tsx";
+import {Download} from "lucide-react";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -14,7 +18,7 @@ export interface ChartComponentProps {
     excludedRef: React.RefObject<HTMLDivElement | null>;
 }
 
-interface CharacterMass {
+export interface CharacterMass {
     uid: string;
     name: string;
     mass: number;
@@ -307,6 +311,22 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
         }
     }, [massData, currentPage, processedPages]);
 
+    const handleExportMassData = useCallback((format: 'csv' | 'json') => {
+        const dataToExport = accumulatedData;
+        if(dataToExport.length === 0) {
+            toast.info(t("noDataToExport"));
+            return;
+        }
+        const filename = `mass_data_page_${currentPage}`;
+        if(format === 'csv') {
+            exportCsv(dataToExport, filename);
+            toast.success(t('exportSuccess', { format: 'CSV', filename: filename }));
+        } else {
+            exportToJson(dataToExport, filename);
+            toast.success(t('exportSuccess', { format: 'JSON', filename: filename }));
+        }
+    }, [accumulatedData, currentPage, t]);
+
     const handleFetchNextPage = useCallback(() => {
         if (!isFetching && massData && currentPage <= massData.totalPages) {
             setCurrentPage(prev => prev + 1);
@@ -316,14 +336,14 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
     }, [isFetching, currentPage, massData, t]);
 
     const handleResetData = useCallback(async () => {
-        toast.info(t("resettingAndRefetchingData"));
-        console.log("Resetting all data...");
         setCurrentPage(1);
         setAccumulatedData([]);
         setProcessedPages(new Set());
         localStorage.removeItem('pieChartCurrentPage');
         localStorage.removeItem('accumulatedMasses');
         localStorage.removeItem('processedPagesPieChart');
+        toast.info(t("resettingAndRefetchingData"));
+        console.log("Resetting all data...");
         fetchTotalRecords().then(setTotalRecords);
         try {
             await queryClient.invalidateQueries({ queryKey: ["massData"] });
@@ -374,7 +394,7 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
     const pieData = useMemo(() => Object.entries(massRangeCount()).map(([name, value]) => ({ name, value })), [massRangeCount]);
 
     useEffect(() => {
-        let timeoutId: NodeJS.Timeout;
+        let timeoutId: ReturnType<typeof setTimeout>;
 
         const checkScreenSize = () => {
             clearTimeout(timeoutId);
@@ -476,6 +496,44 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
                     ))}
                 </div>
             )}
+            <div className="flex flex-col items-center md:flex-row sm:justify-center gap-2 mt-4 sm:mt-0">
+                <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                        <Button
+                            onClick={() => handleExportMassData('csv')}
+                            variant="ghost"
+                            disabled={accumulatedData.length === 0}
+                            className="mt-1 border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold
+                                                       h-7 px-1 py-0.5 text-[0.6rem] w-full sm:w-auto
+                                                       sm:h-10 sm:px-4 sm:py-2 sm:text-sm text-center
+                                                       w-[120px] sm:w-[140px] md:w-[160px]"
+                        >
+                            <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {isMobile ? "CSV" : t("exportToCSV")}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side={isTablet ? "top" : "bottom"} sideOffset={8} className="whitespace-nowrap max-w-md rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg">
+                        <p>{t('tooltipExportToCsv', { page: currentPage })}</p>
+                    </TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                        <Button
+                            onClick={() => handleExportMassData('json')}
+                            variant="ghost"
+                            disabled={accumulatedData.length === 0}
+                            className="mt-1 border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold
+                                                       h-7 px-1 py-0.5 text-[0.6rem] w-full sm:w-auto
+                                                       sm:h-10 sm:px-4 sm:py-2 sm:text-sm text-center
+                                                       w-[120px] sm:w-[140px] md:w-[160px]"
+                        >
+                            <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {isMobile ? "JSON" : t("exportToJson")}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" sideOffset={8} className="whitespace-nowrap max-w-md rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg">
+                        <p>{t('tooltipExportToJson', { page: currentPage })}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </div>
 
             <ResponsiveContainer width="100%" height={chartHeight}>
                 <PieChart margin={{ top: 15, right: 15, bottom: 25, left: 15 }}>
@@ -493,7 +551,7 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
-                    <Tooltip
+                    <RechartsTooltip
                         contentStyle={{
                             fontSize: isMobile ? '12px' : '14px',
                             padding: isMobile ? '4px 8px' : '8px 12px'
@@ -514,7 +572,7 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
                     <span className="text-center text-sm text-gray-500">
                         {t("fetchingMassPage", {
                             page: currentPage,
-                            total: massData?.totalPages || 0,
+                            total: massData?.totalPages || 9,
                             type: t("massTwo"),
                             limit: CHART_FETCH_LIMIT
                         })}
@@ -529,7 +587,7 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
                             >
                                 {t("fetchNextPage", {
                                     page: currentPage + 1,
-                                    total: massData?.totalPages || 0
+                                    total: massData?.totalPages || 9
                                 })}
                             </button>
                         )}

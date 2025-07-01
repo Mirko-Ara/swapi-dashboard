@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { useTranslation } from "react-i18next";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { toast } from "sonner";
@@ -8,8 +8,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTheme} from "@/hooks/theme-hooks";
 import { useClickOutside} from "@/hooks/use-click-outside";
 import type { ChartComponentProps} from "@/components/dashboard/pie-chart";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {Button} from "@/components/ui/button.tsx";
+import {Download} from "lucide-react";
+import {exportCsv, exportToJson} from "@/utils/export.ts";
 
-interface CharacterGender {
+export interface CharacterGender {
     uid: string;
     name: string;
     gender: string;
@@ -178,9 +182,22 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
     const [processedPages, setProcessedPages] = useState<Set<number>>(new Set());
     const [isInitialized, setIsInitialized] = useState(false);
     const { theme } = useTheme();
-
+    const [totalPages, setTotalPages] = useState<number>(0);
     const buttonRef = useRef<HTMLButtonElement>(null);
     const debugListRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const loadTotalPages = async () => {
+            try {
+                const pages = await fetchTotalPages();
+                setTotalPages(pages ?? 9);
+            } catch(error) {
+                console.error("Error fetching total pages for Bar Chart:", error);
+                setTotalPages(9); // Fallback to default value
+            }
+        };
+        loadTotalPages().catch((error) => console.error("Error fetching total pages", error));
+    }, []);
 
     useClickOutside(() => {
         if (showDataDebug) {
@@ -275,6 +292,22 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
         }
     }, [genderData, currentPage, processedPages]);
 
+    const handleExportGenderData = useCallback((format: 'csv' | 'json') => {
+        const dataGenderToExport = accumulatedData;
+        if(dataGenderToExport.length === 0) {
+            toast.info(t("noDataToExport"));
+            return;
+        }
+        const filename = `gender_data_page_${currentPage}`;
+        if(format === 'csv') {
+            exportCsv(dataGenderToExport, filename);
+            toast.success(t('exportSuccess', { format: 'CSV', filename: filename }));
+        } else {
+            exportToJson(dataGenderToExport, filename);
+            toast.success(t('exportSuccess', { format: 'JSON', filename: filename }));
+        }
+    }, [accumulatedData, currentPage, t]);
+
     const handleFetchNextPage = useCallback(() => {
         if (!isFetching && genderData && currentPage <= (genderData.totalPages || 9)) {
             setCurrentPage(prev => prev + 1);
@@ -284,14 +317,14 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
     }, [isFetching, currentPage, genderData, t]);
 
     const handleResetData = useCallback(async () => {
-        toast.info(t("resettingAndRefetchingData"));
-        console.log("Resetting all data for Bar Chart...");
         setCurrentPage(1);
         setAccumulatedData([]);
         setProcessedPages(new Set());
         localStorage.removeItem('barChartCurrentPage');
         localStorage.removeItem('accumulatedGenders');
         localStorage.removeItem('processedPagesBarChart');
+        toast.info(t("resettingAndRefetchingData"));
+        console.log("Resetting all data for Bar Chart...");
         fetchTotalRecordsPeople().then(setTotalRecords);
         try {
             await queryClient.invalidateQueries({ queryKey: ["genderData"] });
@@ -345,7 +378,7 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
     }, [genderCount]);
 
     useEffect(() => {
-        let timeoutId: NodeJS.Timeout;
+        let timeoutId: ReturnType<typeof setTimeout>;
 
         const checkScreenSize = () => {
             clearTimeout(timeoutId);
@@ -428,7 +461,7 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
         <div className="w-full">
             <div className="text-center mb-4">
                 <p className="mt-3"><strong>{t("loadedRecords")}: {accumulatedData.length}</strong></p>
-                <p className="mt-2"><strong>{t("currentPage")}: {currentPage} {t("of")} {genderData?.totalPages || 9}</strong></p>
+                <p className="mt-2"><strong>{t("currentPage")}: {currentPage} {t("of")} {genderData?.totalPages || totalPages}</strong></p>
                 <button
                     ref={buttonRef}
                     onClick={() => setShowDataDebug(!showDataDebug)}
@@ -454,8 +487,46 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
                     ))}
                 </div>
             )}
+            <div className="flex flex-col items-center md:flex-row sm:justify-center gap-2 mt-4 sm:mt-0">
+                <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                        <Button
+                            onClick={() => handleExportGenderData('csv')}
+                            variant="ghost"
+                            disabled={accumulatedData.length === 0}
+                            className="mt-1 border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold
+                                                       h-7 px-1 py-0.5 text-[0.6rem] w-full sm:w-auto
+                                                       sm:h-10 sm:px-4 sm:py-2 sm:text-sm
+                                                       text-center w-[120px] sm:w-[140px] md:w-[160px]"
+                        >
+                            <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {isMobile ? "CSV" : t("exportToCSV")}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side={isTablet ? "top" : "bottom"} sideOffset={8} className="whitespace-nowrap max-w-md rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg">
+                        <p>{t('tooltipExportToCsv', { page: currentPage })}</p>
+                    </TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                        <Button
+                            onClick={() => handleExportGenderData('json')}
+                            variant="ghost"
+                            disabled={accumulatedData.length === 0}
+                            className="mt-1 border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold
+                                                       h-7 px-1 py-0.5 text-[0.6rem] w-full sm:w-auto
+                                                       sm:h-10 sm:px-4 sm:py-2 sm:text-sm
+                                                       text-center w-[120px] sm:w-[140px] md:w-[160px]"
+                        >
+                            <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {isMobile ? "JSON" : t("exportToJson")}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" sideOffset={8} className="whitespace-nowrap max-w-md rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg">
+                        <p>{t('tooltipExportToJson', { page: currentPage })}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </div>
 
-            <ResponsiveContainer width="100%" height={chartHeight} className="mt-22">
+            <ResponsiveContainer width="100%" height={chartHeight} className="mt-17">
                 <BarChart
                     data={barData}
                     margin={{
@@ -483,7 +554,7 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
                         }}
                         tick={{ fontSize }}
                     />
-                    <Tooltip
+                    <RechartsTooltip
                         formatter={(value) => [`${value}`, t("characters")]}
                         contentStyle={{
                             backgroundColor: '#ffffff',
@@ -515,14 +586,14 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
                     <span className="text-center text-sm text-gray-500">
                         {t("fetchingGenderPage", {
                             page: currentPage,
-                            total: genderData?.totalPages || 0,
+                            total: genderData?.totalPages || 9,
                             type: t("gender"),
                             limit: CHART_FETCH_LIMIT
                         })}
                     </span>
                 ) : (
                     <>
-                        {!allPagesFetched && genderData && currentPage < (genderData.totalPages || 9) && (
+                        {!allPagesFetched && genderData && currentPage < (genderData.totalPages || totalPages) && (
                             <button
                                 onClick={handleFetchNextPage}
                                 className="hover:scale-[0.98] active:scale-[0.98] font-semibold cursor-pointer inline-flex items-center justify-center rounded-xl border border-border bg-muted text-foreground text-sm font-medium px-4 py-2 shadow-sm hover:bg-muted/70 hover:text-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -530,7 +601,7 @@ const BarChartComponent = ({excludedRef}: ChartComponentProps) => {
                             >
                                 {t("fetchNextPage", {
                                     page: currentPage + 1,
-                                    total: genderData?.totalPages || 9
+                                    total: genderData?.totalPages || totalPages,
                                 })}
                             </button>
                         )}

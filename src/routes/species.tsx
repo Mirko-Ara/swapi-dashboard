@@ -365,7 +365,7 @@ export const Species = () => {
                                         </Tooltip>
                                     </div>
                                 )}
-                                <div className="flex flex-col items-center md:flex-row sm:justify-end gap-4 mt-4 sm:mt-0">
+                                <div className="flex flex-col items-center md:flex-row sm:justify-end gap-2 mt-4 sm:mt-0">
                                     <Tooltip delayDuration={0}>
                                         <TooltipTrigger asChild>
                                             <Button
