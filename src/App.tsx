@@ -3,6 +3,7 @@ import { Toaster } from "./components/ui/sonner"
 import { Sidebar } from "./components/layout/sidebar"
 import { Outlet } from "@tanstack/react-router"
 import { useAuth } from "@/hooks/use-auth"
+import { FunFactWidget } from "@/components/ui/fun-fact-widget"
 
 export default function App() {
     const { isAuthenticated } = useAuth();
@@ -16,6 +17,7 @@ export default function App() {
                 </main>
             </div>
             <Toaster />
+            <FunFactWidget/>
         </div>
     )
 }
