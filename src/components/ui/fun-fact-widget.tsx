@@ -150,8 +150,15 @@ export const FunFactWidget = () => {
     const [currentFact, setCurrentFact] = useState<FunFact>(initialFact);
     const [progress, setProgress] = useState(0);
     const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
+    const [isAppReady, setIsAppReady] = useState(false);
     const { t } = useTranslation();
     const location = useLocation();
+    const [isEnabled] = useState(() => {
+        if(typeof window !== "undefined") {
+            return localStorage.getItem("funFactWidgetEnabled") !== "false";
+        }
+        return true;
+    });
 
     const startTimer = () => {
         if (timerId) clearInterval(timerId);
@@ -191,14 +198,37 @@ export const FunFactWidget = () => {
     };
 
     useEffect(() => {
-        setRandomFact();
-        setIsVisible(true);
-    }, []);
+        if(location.pathname === "/login" || !isEnabled) {
+            setIsVisible(false);
+            return;
+        }
+        const timeout = setTimeout(() => {
+            setIsAppReady(true);
+        }, 2000);
+        return () => clearTimeout(timeout);
+    }, [isEnabled, location.pathname]);
 
     useEffect(() => {
-        setRandomFact();
-        setIsVisible(true);
-    }, [location.pathname]);
+        if(location.pathname === "/login" || !isEnabled) {
+            setIsVisible(false);
+            return;
+        }
+        if(isAppReady) {
+            setRandomFact();
+            setIsVisible(true);
+        }
+    }, [isAppReady, isEnabled, location.pathname]);
+
+    useEffect(() => {
+        if(location.pathname === "/login" || !isEnabled) {
+            setIsVisible(false);
+            return;
+        }
+       if(isAppReady) {
+           setRandomFact();
+           setIsVisible(true);
+       }
+    }, [location.pathname, isAppReady, isEnabled]);
 
     useEffect(() => {
         if (isVisible) {

@@ -5,6 +5,8 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            toggleFunFactWidget: "Enable/disable the fun fact widget",
+            funFactWidget: "Fun Fact Widget",
             didYouKnow: "Did you know?",
             funFact: "Fun Fact",
             starWarsTrivia: "Star Wars Trivia",
@@ -251,6 +253,8 @@ const resources = {
     },
     it: {
         translation: {
+            toggleFunFactWidget: "Abilita/disabilita il widget delle curiosità",
+            funFactWidget: "Widget Curiosità",
             didYouKnow: "Lo sapevi?",
             funFact: "Curiosità",
             starWarsTrivia: "Trivia di Star Wars",
@@ -496,6 +500,8 @@ const resources = {
     },
     es: {
         translation: {
+            toggleFunFactWidget: "Activar/Desactivar Widget de Curiosidades",
+            funFactWidget: "Widget de Curiosidades",
             didYouKnow: "¿Sabías que?",
             funFact: "Dato Curioso",
             starWarsTrivia: "Trivia de Star Wars",

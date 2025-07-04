@@ -15,6 +15,7 @@ import {
     TooltipTrigger,
     TooltipContent,
 } from "@/components/ui/tooltip";
+import { PageTransitionWrapper } from "@/components/ui/page-transition-wrapper";
 import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
 import type {ChartComponentProps} from "@/components/dashboard/pie-chart";
 
@@ -107,96 +108,98 @@ const Dashboard = () => {
         : null;
 
     return (
-        <div className="flex flex-col">
-            <div className="flex-1 space-y-4 p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center sm:text-left ">{t('dashboardPageTitle')}</h2>
-                    {hasCache && (
-                        <div className="flex flex-col items-center sm:items-end gap-2">
-                            <Tooltip delayDuration={200}>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        onClick={handleCacheAction}
-                                        className="flex items-center justify-center gap-1 sm:gap-2
-                                            cursor-pointer
-                                            transition-transform hover:scale-95 active:scale-90
-                                            text-xs sm:text-sm md:text-base rounded-lg
-                                            px-3 py-1.5 sm:px-4 sm:py-2"
-                                        disabled={isProcessingCache}
-                                    >
-                                        <RotateCcw className="h-4 w-4 transition-transform duration-300 animate-spin" />
-                                        {t("invalidateDataCache")}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" sideOffset={8} className="rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-xs">
-                                    <p>{t("invalidateAndRefreshDataCache")}</p>
-                                </TooltipContent>
-                            </Tooltip>
+        <PageTransitionWrapper>
+            <div className="flex flex-col">
+                <div className="flex-1 space-y-4 p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center sm:text-left ">{t('dashboardPageTitle')}</h2>
+                        {hasCache && (
+                            <div className="flex flex-col items-center sm:items-end gap-2">
+                                <Tooltip delayDuration={200}>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            onClick={handleCacheAction}
+                                            className="flex items-center justify-center gap-1 sm:gap-2
+                                                cursor-pointer
+                                                transition-transform hover:scale-95 active:scale-90
+                                                text-xs sm:text-sm md:text-base rounded-lg
+                                                px-3 py-1.5 sm:px-4 sm:py-2"
+                                            disabled={isProcessingCache}
+                                        >
+                                            <RotateCcw className="h-4 w-4 transition-transform duration-300 animate-spin" />
+                                            {t("invalidateDataCache")}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" sideOffset={8} className="rounded-md font-semibold bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg max-w-xs">
+                                        <p>{t("invalidateAndRefreshDataCache")}</p>
+                                    </TooltipContent>
+                                </Tooltip>
 
-                            {formattedLastUpdated && (
-                                <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
-                                    {`${t("lastUpdate")} ${formattedLastUpdated}`}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                <div className={`grid gap-2 sm:gap-4 ${gridColsClass} sm:grid-cols-2`}>
-                    {CITY_CONFIG.map(({ city, timeZone, label }) => (
-                        <CityTime
-                            key={city}
-                            city={label}
-                            timeZone={timeZone}
-                        />
-                    ))}
-                </div>
-                <div
-                    className="grid gap-2 sm:gap-4 sm:grid-cols-1 md:grid-cols-2"
-                >
-                    <Card ref={pieChartRef}>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm sm:text-base">{t("characterMassComparison")}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-2 sm:p-6">
-                            {isProcessingCache ? (
-                                <div className="flex flex-col items-center justify-center h-[200px] sm:h-[300px]">
-                                    <LoaderSpinner size="lg" className="mb-4" />
-                                    <p className="text-center text-muted-foreground mt-4">
-                                        {cacheMessage}
+                                {formattedLastUpdated && (
+                                    <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
+                                        {`${t("lastUpdate")} ${formattedLastUpdated}`}
                                     </p>
-                                </div>
-                            ) : (
-                                <div className="w-full overflow-hidden -mt-15 -ml-0.5">
-                                    <MemoizedPieChartComponent excludedRef={barChartRef}/>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                )}
+                            </div>
+                        )}
+                    </div>
 
-                    <Card ref={barChartRef}>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm sm:text-base">{t("genderDistribution")}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-2 sm:p-6">
-                            {isProcessingCache ? (
-                                <div className="flex flex-col items-center justify-center h-[200px] sm:h-[300px]">
-                                    <LoaderSpinner size="lg" className="mb-4" />
-                                    <p className="text-center text-muted-foreground mt-4">
-                                        {cacheMessage}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="w-full overflow-hidden -mt-8 -ml-0.5">
-                                    <MemoizedBarChartComponent excludedRef={pieChartRef}/>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                    <div className={`grid gap-2 sm:gap-4 ${gridColsClass} sm:grid-cols-2`}>
+                        {CITY_CONFIG.map(({ city, timeZone, label }) => (
+                            <CityTime
+                                key={city}
+                                city={label}
+                                timeZone={timeZone}
+                            />
+                        ))}
+                    </div>
+                    <div
+                        className="grid gap-2 sm:gap-4 sm:grid-cols-1 md:grid-cols-2"
+                    >
+                        <Card ref={pieChartRef}>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-sm sm:text-base">{t("characterMassComparison")}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-2 sm:p-6">
+                                {isProcessingCache ? (
+                                    <div className="flex flex-col items-center justify-center h-[200px] sm:h-[300px]">
+                                        <LoaderSpinner size="lg" className="mb-4" />
+                                        <p className="text-center text-muted-foreground mt-4">
+                                            {cacheMessage}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="w-full overflow-hidden -mt-15 -ml-0.5">
+                                        <MemoizedPieChartComponent excludedRef={barChartRef}/>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <Card ref={barChartRef}>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-sm sm:text-base">{t("genderDistribution")}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-2 sm:p-6">
+                                {isProcessingCache ? (
+                                    <div className="flex flex-col items-center justify-center h-[200px] sm:h-[300px]">
+                                        <LoaderSpinner size="lg" className="mb-4" />
+                                        <p className="text-center text-muted-foreground mt-4">
+                                            {cacheMessage}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="w-full overflow-hidden -mt-8 -ml-0.5">
+                                        <MemoizedBarChartComponent excludedRef={pieChartRef}/>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
-        </div>
+        </PageTransitionWrapper>
     );
 };
 

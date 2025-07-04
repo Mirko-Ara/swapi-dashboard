@@ -504,9 +504,9 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
                             variant="ghost"
                             disabled={accumulatedData.length === 0}
                             className="mt-1 border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold
-                                                       h-7 px-1 py-0.5 text-[0.6rem] w-full sm:w-auto
-                                                       sm:h-10 sm:px-4 sm:py-2 text-xs text-center
-                                                       w-[120px] sm:w-[140px] lg:w-[150px] lg:text-sm"
+                                       h-7 px-1 py-0.5 text-[0.6rem] w-full sm:w-auto
+                                       sm:h-10 sm:px-4 sm:py-2 text-xs text-center
+                                       w-[120px] sm:w-[140px] lg:w-[150px] lg:text-sm"
                         >
                             <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {isMobile ? "CSV" : t("exportToCSV")}
                         </Button>
@@ -522,9 +522,9 @@ const PieChartComponent = ({excludedRef}: ChartComponentProps) => {
                             variant="ghost"
                             disabled={accumulatedData.length === 0}
                             className="mt-1 border border-gray-500 hover:scale-[0.95] active:scale-[0.95] cursor-pointer font-semibold
-                                                       h-7 px-1 py-0.5 text-[0.6rem] w-full sm:w-auto
-                                                       sm:h-10 sm:px-4 sm:py-2 lg:text-sm text-xs text-center
-                                                       w-[120px] sm:w-[140px] lg:w-[150px]"
+                                       h-7 px-1 py-0.5 text-[0.6rem] w-full sm:w-auto
+                                       sm:h-10 sm:px-4 sm:py-2 lg:text-sm text-xs text-center
+                                       w-[120px] sm:w-[140px] lg:w-[150px]"
                         >
                             <Download className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"/> {isMobile ? "JSON" : t("exportToJson")}
                         </Button>
