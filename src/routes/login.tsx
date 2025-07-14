@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next';
 import { toast } from "sonner";
 import {useState} from "react";
 import { PageTransitionWrapper } from "@/components/ui/page-transition-wrapper";
+import { mockUserApi } from "@/api/mock-user-api";
+import type { User } from "@/types/user";
 
 const formSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -35,21 +37,31 @@ const Login = () => {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         console.log("Login attempt with:", values);
+
+        const loginPromise = (async () => {
+            try {
+                const users: User[] = await mockUserApi.fetchUsers();
+                const foundUser: User | null = users.find(u =>
+                    u.email === values.email && u.password === values.password
+                ) || null;
+
+                if (foundUser) {
+                    login(foundUser);
+                    await navigate({to: "/dashboard"});
+                    return "success";
+                } else {
+                    throw new Error("Credentials do not match any user");
+                }
+            } catch (error) {
+                console.error("Error during login or navigation:", error);
+                throw error;
+            } finally {
+                setIsLoading(false);
+            }
+        })();
+
         toast.promise(
-            new Promise((resolve, reject) => {
-                setTimeout(async () => {
-                    try {
-                        login();
-                        await navigate({to: "/dashboard"});
-                        resolve("success");
-                    } catch (error) {
-                        console.error("Error during login or navigation:", error);
-                        reject(error);
-                    } finally {
-                        setIsLoading(false);
-                    }
-                }, 800);
-            }),
+            loginPromise,
             {
                 loading: t("loggingIn"),
                 success: t("loggedIn"),
@@ -57,7 +69,6 @@ const Login = () => {
             }
         );
     };
-
 
         return (
             <PageTransitionWrapper>

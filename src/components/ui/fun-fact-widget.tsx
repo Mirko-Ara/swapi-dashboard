@@ -5,6 +5,9 @@ import { useState, useEffect, type JSX } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "@tanstack/react-router";
+import type {RootState} from "@/store/store-index.ts";
+import {useSelector} from "react-redux";
+
 
 interface FunFact {
     id: number;
@@ -153,12 +156,7 @@ export const FunFactWidget = () => {
     const [isAppReady, setIsAppReady] = useState(false);
     const { t } = useTranslation();
     const location = useLocation();
-    const [isEnabled] = useState(() => {
-        if(typeof window !== "undefined") {
-            return localStorage.getItem("funFactWidgetEnabled") !== "false";
-        }
-        return true;
-    });
+    const isEnabled = useSelector((state: RootState) => state.settings.funFactWidgetEnabled);
 
     const startTimer = () => {
         if (timerId) clearInterval(timerId);

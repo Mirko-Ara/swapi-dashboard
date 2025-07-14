@@ -5,6 +5,71 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            unauthorizedChangeRole: "Unauthorized to change role!",
+            unauthorizedAction: "Unauthorized action!",
+            usersManagement: "users management",
+            accessDenied: "Access denied!",
+            loginRendering: 'Redirecting to login page...',
+            users1: {
+                deleteDialog: {
+                    title: "Delete User {{user}} !",
+                    description: "Are you sure you want to delete user {{user}}?",
+                    cancel: "Cancel",
+                    confirm: "Confirm Delete",
+                },
+                title: "User Management",
+                form: {
+                    createTitle: "Create New User",
+                    editTitle: "Edit User",
+                    username: "Username",
+                    email: "Email",
+                    password: "Password (leave empty to keep current)",
+                    role: "Role",
+                    selectRole: "Select a role",
+                    active: "Active",
+                    saveChanges: "Save Changes",
+                    createUser: "Create User",
+                    cancel: "Cancel"
+                },
+                table: {
+                    username: "Username",
+                    email: "Email",
+                    role: "Role",
+                    active: "Active",
+                    actions: "Actions"
+                },
+                list: {
+                    title: "Users List"
+                },
+                roles: {
+                    admin: "Administrator",
+                    editor: "Editor",
+                    viewer: "Viewer",
+                },
+                status: {
+                    active: "Active",
+                    inactive: "Inactive"
+                },
+                actions: {
+                    edit: "Edit",
+                    delete: "Delete"
+                },
+                messages: {
+                    saving: "Saving...",
+                    deleting: "Deleting...",
+                    createError: "Error creating user",
+                    updateError: "Error updating user",
+                    deleteError: "Error deleting user"
+                }
+            },
+            errorLoadingUsers: "Error loading users!",
+            loadingUsers: "Loading users...",
+            errorDeletingUser: "Error deleting user {{user}}!",
+            userDeletedSuccessfully: "User {{user}} deleted successfully!",
+            confirmDeleteUser: "Are you sure you want to delete user {{user}}?",
+            errorSavingUser: "Error saving user {{user}}!",
+            userCreateSuccessfully: "User {{user}} created successfully!",
+            userUpdatedSuccessfully: "User {{user}} updated successfully!",
             toggleFunFactWidget: "Enable/disable the fun fact widget",
             funFactWidget: "Fun Fact Widget",
             didYouKnow: "Did you know?",
@@ -253,6 +318,71 @@ const resources = {
     },
     it: {
         translation: {
+            unauthorizedChangeRole: "azione non autorizzata per cambiare ruolo!",
+            unauthorizedAction: "azione non autorizzata!",
+            usersManagement: "gestione utenti",
+            accessDenied: "Accesso negato!",
+            loginRendering: 'Reindirizzamento alla pagina di login in corso...',
+            users1: {
+                deleteDialog: {
+                    title: "Elimina Utente {{user}} !",
+                    description: "Sei sicuro di voler eliminare l'utente {{user}}?",
+                    cancel: "Annulla",
+                    confirm: "Conferma Eliminazione",
+                },
+                title: "Gestione Utenti",
+                form: {
+                    createTitle: "Crea Nuovo Utente",
+                    editTitle: "Modifica Utente",
+                    username: "Username",
+                    email: "Email",
+                    password: "Password (lascia vuoto per non cambiare)",
+                    role: "Ruolo",
+                    selectRole: "Seleziona un ruolo",
+                    active: "Attivo",
+                    saveChanges: "Salva Modifiche",
+                    createUser: "Crea Utente",
+                    cancel: "Annulla"
+                },
+                table: {
+                    username: "Username",
+                    email: "Email",
+                    role: "Ruolo",
+                    active: "Attivo",
+                    actions: "Azioni"
+                },
+                list: {
+                    title: "Lista Utenti"
+                },
+                roles: {
+                    admin: "Amministratore",
+                    editor: "Editore",
+                    viewer: "Visualizzatore",
+                },
+                status: {
+                    active: "Attivo",
+                    inactive: "Inattivo"
+                },
+                actions: {
+                    edit: "Modifica",
+                    delete: "Elimina"
+                },
+                messages: {
+                    saving: "Salvataggio in corso...",
+                    deleting: "Eliminazione in corso...",
+                    createError: "Errore nella creazione",
+                    updateError: "Errore nell'aggiornamento",
+                    deleteError: "Errore nell'eliminazione"
+                }
+            },
+            errorLoadingUsers: "Errore nel caricamento degli utenti!",
+            loadingUsers: "Caricamento utenti in corso...",
+            errorDeletingUser: "Errore nell'eliminazione dell'utente {{user}}!",
+            userDeletedSuccessfully: "Utente {{user}} eliminato con successo!",
+            confirmDeleteUser: "Sei sicuro di voler eliminare l'utente {{user}}?",
+            errorSavingUser: "Errore nel salvataggio dell'utente {{user}}!",
+            userCreateSuccessfully: "Utente {{user}} creato con successo!",
+            userUpdatedSuccessfully: "Utente {{user}} aggiornato con successo!",
             toggleFunFactWidget: "Abilita/disabilita il widget delle curiosità",
             funFactWidget: "Widget Curiosità",
             didYouKnow: "Lo sapevi?",
@@ -500,6 +630,71 @@ const resources = {
     },
     es: {
         translation: {
+            unauthorizedChangeRole: "¡acción no autorizada para cambiar el rol!",
+            unauthorizedAction: "¡acción no autorizada!",
+            usersManagement: "gestión de usuarios",
+            accessDenied: "¡Acceso denegado!",
+            loginRendering: 'Redirigiendo a la página de inicio de sesión...',
+            users1: {
+                deleteDialog: {
+                    title: "¡Eliminar Usuario {{user}} !",
+                    description: "¿Estás seguro de que deseas eliminar al usuario {{user}}?",
+                    cancel: "Cancelar",
+                    confirm: "Confirmar Eliminación",
+                },
+                title: "Gestión de Usuarios",
+                form: {
+                    createTitle: "Crear Nuevo Usuario",
+                    editTitle: "Editar Usuario",
+                    username: "Nombre de Usuario",
+                    email: "Correo Electrónico",
+                    password: "Contraseña (dejar vacío para no cambiar)",
+                    role: "Rol",
+                    selectRole: "Seleccionar un rol",
+                    active: "Activo",
+                    saveChanges: "Guardar Cambios",
+                    createUser: "Crear Usuario",
+                    cancel: "Cancelar"
+                },
+                table: {
+                    username: "Usuario",
+                    email: "Correo",
+                    role: "Rol",
+                    active: "Activo",
+                    actions: "Acciones"
+                },
+                list: {
+                    title: "Lista de Usuarios"
+                },
+                roles: {
+                    admin: "Administrador",
+                    editor: "Editor",
+                    viewer: "Espectador",
+                },
+                status: {
+                    active: "Activo",
+                    inactive: "Inactivo"
+                },
+                actions: {
+                    edit: "Editar",
+                    delete: "Eliminar"
+                },
+                messages: {
+                    saving: "Guardando...",
+                    deleting: "Eliminando...",
+                    createError: "Error al crear usuario",
+                    updateError: "Error al actualizar usuario",
+                    deleteError: "Error al eliminar usuario"
+                }
+            },
+            errorLoadingUsers: "¡Error al cargar los usuarios!",
+            loadingUsers: "Cargando usuarios...",
+            errorDeletingUser: "¡Error al eliminar el usuario {{user}}!",
+            userDeletedSuccessfully: "¡Usuario {{user}} eliminado con éxito!",
+            confirmDeleteUser: "¿Está seguro de que desea eliminar el usuario {{user}}?",
+            errorSavingUser: "¡Error en el guardado del usuario {{user}}!",
+            userCreateSuccessfully: "¡Usuario {{user}} creado con éxito!",
+            userUpdatedSuccessfully: "¡Usuario {{user}} actualizado con éxito!",
             toggleFunFactWidget: "Activar/Desactivar Widget de Curiosidades",
             funFactWidget: "Widget de Curiosidades",
             didYouKnow: "¿Sabías que?",

@@ -16,7 +16,7 @@ import {
     TooltipContent,
 } from "@/components/ui/tooltip";
 import { PageTransitionWrapper } from "@/components/ui/page-transition-wrapper";
-import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
+import {LoaderSpinner} from "@/components/layout/loader-spinner";
 import type {ChartComponentProps} from "@/components/dashboard/pie-chart";
 
 

@@ -2,7 +2,7 @@
 import { ThemeSwitcher } from '@/providers/theme-switcher';
 import { Link, useRouter } from "@tanstack/react-router"
 import { Button } from "../ui/button"
-import {LayoutDashboard, Users, Settings, Rocket, Menu, LogOut, Globe, Dna} from "lucide-react"
+import {LayoutDashboard, Users, Settings, Rocket, Menu, LogOut, Globe, Dna, UserCog} from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { LoaderSpinner } from "@/components/layout/loader-spinner";
@@ -144,6 +144,15 @@ export const Sidebar = ({ onToggle }: { onToggle?: (open: boolean) => void }) =>
                             >
                                 <Settings className="h-4 w-4" />
                                 {t('settings')}
+                            </Link>
+                            <Link
+                                to="/users management"
+                                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary
+                                ${currentPath === "/users management" ? "bg-muted text-primary" : "text-muted-foreground"}`}
+                                onClick={() => setMobileToggle(false)}
+                            >
+                                <UserCog className="h-4 w-4" />
+                                {t('usersManagement')}
                             </Link>
                             <Link
                                 to="/starships"

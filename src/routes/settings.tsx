@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useState} from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,9 @@ import * as z from "zod";
 import {useForm} from "react-hook-form";
 import { PageTransitionWrapper } from "@/components/ui/page-transition-wrapper";
 import shadcnAvatar from '@/images/shadcn.png';
-
-const FUN_FACT_STORAGE_KEY = "funFactWidgetEnabled" as const;
+import {useDispatch, useSelector} from "react-redux";
+import type {AppDispatch, RootState} from "@/store/store-index.ts";
+import { toggleFunFactWidget } from '@/store/settings-slice';
 
 const profileFormSchema = z.object({
    firstName: z.string()
@@ -46,18 +47,15 @@ const Settings = () => {
     const { theme, setTheme } = useTheme();
     const [isLoading, setIsLoading] = useState(false);
     const STORAGE_KEY = "twoFactorAuthEnabled" as const;
-    const [funFactWidgetEnabled, setFunFactWidgetEnabled] = useState<boolean>(true);
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
         if(typeof window !== "undefined") {
             return localStorage.getItem(STORAGE_KEY) === "true";
         }
         return false;
     });
+    const dispatch = useDispatch<AppDispatch>();
+    const funFactWidgetEnabled = useSelector((state: RootState) => state.settings.funFactWidgetEnabled);
 
-    useEffect(() => {
-        const stored = localStorage.getItem(FUN_FACT_STORAGE_KEY);
-        setFunFactWidgetEnabled(stored !== "false");
-    }, [setFunFactWidgetEnabled]);
 
     const handleToggle2FA = useCallback((checked: boolean) => {
         setIsEnabled(checked);
@@ -66,11 +64,9 @@ const Settings = () => {
         }
     }, [STORAGE_KEY]);
 
-    const toggleFunFactWidget = useCallback(() => {
-        const newVal = !funFactWidgetEnabled;
-        setFunFactWidgetEnabled(newVal);
-        localStorage.setItem(FUN_FACT_STORAGE_KEY, String(newVal));
-    }, [funFactWidgetEnabled]);
+    const handleToggleFunFact = useCallback((checked: boolean) => {
+        dispatch(toggleFunFactWidget(checked));
+    },  [dispatch]);
 
     const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
@@ -425,7 +421,7 @@ const Settings = () => {
                                             <Switch
                                                 className="cursor-pointer transition-colors duration-300"
                                                 checked={funFactWidgetEnabled}
-                                                onCheckedChange={toggleFunFactWidget}
+                                                onCheckedChange={handleToggleFunFact}
                                             />
                                         </div>
                                     </div>

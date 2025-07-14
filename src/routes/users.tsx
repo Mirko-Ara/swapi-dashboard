@@ -30,7 +30,7 @@ const ITEMS_PER_PAGE_FAVORITES = 10;
 const Users = () => {
     const { t } = useTranslation();
     const navigate = useNavigate({ from: '/characters' });
-    const { page: pagePeople, limit } = useSearch({ from: '/characters' });
+    const { page: pagePeople, limit, search: globalFilterPeople, tabCharacters: activeTabFromUrls } = useSearch({ from: '/characters' });
     const page = useMemo(() => Number(pagePeople) || 1, [pagePeople]);
     const { people, totalPeople, totalPages, isLoading, isRefetching } = useSwapiPeople(page, limit);
     const queryClient = useQueryClient();
@@ -39,16 +39,14 @@ const Users = () => {
     const fetchedPagesRef = useRef(new Set());
     const previousPageRef = useRef(page);
     const [seenPeopleCount, setSeenPeopleCount] = useState(0);
-    const [activeTab, setActiveTab] = useState("all");
     const { favorites, favoritesArray, toggleFavoritePeople, clearAll, clearCurrentPageFavorites } = useFavoritesPeople();
     const [currentPageFavorites, setCurrentPageFavorites] = useState(1);
     const [filterTextFavorites, setFilterTextFavorites] = useState("");
     const [selectedCharacter, setSelectedCharacter] = useState<Person | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [globalFilterPeople, setGlobalFilterPeople] = useState('');
     const [goToPageInput, setGoToPageInput] = useState('');
-
+    const currentTabAndSearch = useSearch({ from: '/characters'});
     // useEffect(() => {
     //     console.log("Starships Component mounted/updated.");
     //     console.log("Current i18n language:", i18n.language);
@@ -96,7 +94,7 @@ const Users = () => {
         const pageKey = `${page}-${limit}`;
         const wasPageFetched = fetchedPagesRef.current.has(pageKey);
         const pageChanged = previousPageRef.current !== page;
-        if(!wasPageFetched || pageChanged) {
+        if(!wasPageFetched || pageChanged || globalFilterPeople !== currentTabAndSearch.search || activeTabFromUrls !== currentTabAndSearch.tabCharacters) {
             resetLogWatcher();
             seenPeopleRef.current = new Map();
             fetchedPagesRef.current = new Set();
@@ -114,7 +112,7 @@ const Users = () => {
             setSeenPeopleCount(seenPeopleRef.current.size);
         }
         previousPageRef.current = page;
-    }, [page, limit, people, isLoading, resetLogWatcher]);
+    }, [page, limit, people, isLoading, resetLogWatcher, globalFilterPeople, currentTabAndSearch.search, currentTabAndSearch.tabCharacters, activeTabFromUrls]);
 
     const allPagesFetched = useMemo(() => {
         if(!totalPages) return false;
@@ -285,13 +283,23 @@ const Users = () => {
         }
     }, [people, paginatedFavorites, t, page, currentPageFavorites]);
 
+    const handleGlobalFilterChange = useCallback(async (value: string) => {
+        await navigate({ search: (oldSearch) => ({ ...oldSearch, search: value, page: page})});
+    }, [navigate, page]);
+
+    const handleTabChange = useCallback(async (value: string) => {
+        if (value === "all" || value === "favorites") {
+            await navigate({ search: (oldSearch) => ({ ...oldSearch, tabCharacters: value }) });
+        }
+    }, [navigate]);
+
     return (
         <PageTransitionWrapper>
             <div className="flex flex-col p-8 pt-6 space-y-6">
                 <div className="flex justify-center items-center">
                     <h2 className="text-3xl font-bold tracking-tight text-center">{t('usersPageTitle')}</h2>
                 </div>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs value={activeTabFromUrls} onValueChange={handleTabChange} className="w-full">
                     <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0 flex flex-wrap sm:flex-nowrap">
                         <TabsTrigger
                             value="all"
@@ -423,7 +431,7 @@ const Users = () => {
                                         currentPageForDisplay: page,
                                     }}
                                     globalFilterValue={globalFilterPeople}
-                                    onGlobalFilterChange={setGlobalFilterPeople}
+                                    onGlobalFilterChange={handleGlobalFilterChange}
                                 />
                                 {(people.length > 0 || globalFilterPeople) && (
                                     <div className="mt-6 text-center">
@@ -698,6 +706,17 @@ const Users = () => {
                                             </>
                                         )}
                                     </Card>
+                                )}
+                                {filterTextFavorites && favoriteUsers.length === 0 && (
+                                    <div className="flex flex-col items-center justify-center p-6 gap-4">
+                                        <p className="text-center text-destructive text-sm sm:text-base mt-4">{t('noFavoritesMatchFilter')}</p>
+                                        <Button
+                                            className="cursor-pointer text-gray-400 text-xs sm:text-sm hover:text-destructive hover:scale-[0.98] active:scale-[0.98]" variant="ghost" size="sm"
+                                            onClick={() => setFilterTextFavorites('')}
+                                        >
+                                            {t("clearFilter")}
+                                        </Button>
+                                    </div>
                                 )}
                             </div>
                         )}

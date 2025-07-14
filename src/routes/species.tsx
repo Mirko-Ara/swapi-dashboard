@@ -37,7 +37,7 @@ const ITEMS_PER_PAGE = 10;
 
 export const Species = () => {
     const { t } = useTranslation();
-    const { page: pageSpecies, limit } = useSearch({ from: '/species'});
+    const { page: pageSpecies, limit, search: globalFilterSpecies, tabSpecies: activeSpeciesTabsFromUrls  } = useSearch({ from: '/species'});
     const page = useMemo(() => Number(pageSpecies) || 1, [pageSpecies]);
     const { species, isLoading, isRefetching, totalSpecies, totalPages } = useSwapiSpecies(page, limit);
     const navigate = useNavigate({ from: '/species'});
@@ -45,17 +45,16 @@ export const Species = () => {
     const {favorites, favoritesArray, toggleFavoriteSpecies, clearAll, clearCurrentPageFavorites: clearSpeciesFavoritesActualPage} = useFavoritesSpecies();
     const [filterTextFavorites, setFilterTextFavorites] = useState("");
     const [goToPageInput, setGoToPageInput] = useState('');
-    const [activeTab, setActiveTab] = useState("all");
     const [currentPageFavorites, setCurrentPageFavorites] = useState(1);
     const [selectedSpecies, setSelectedSpecies] = useState<SpeciesInterface | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const queryClient = useQueryClient();
     const { resetLogWatcher } = useSpeciesLogWatcher();
-    const [globalFilterSpecies, setGlobalFilterSpecies] = useState('');
     const seenSpeciesRef = useRef<Map<string, SpeciesInterface>>(new Map());
     const fetchedSpeciesPagesRef = useRef(new Set());
     const previousSpeciesPagesRef = useRef<number>(page);
     const [seenSpeciesCount, setSeenSpeciesCount] = useState<number>(0);
+    const currentSpeciesTabAndSearch = useSearch({ from: '/species'});
 
     const getOrdinalSpeciesFavoritesPagesSuffix = useCallback((number: number): string => {
         const suffixes = ["th", "st", "nd", "rd"];
@@ -91,7 +90,7 @@ export const Species = () => {
         const pageKey = `${page}-${limit}`;
         const wasPageFetched = fetchedSpeciesPagesRef.current.has(pageKey);
         const pageChanged = previousSpeciesPagesRef.current !== page;
-        if(!wasPageFetched || pageChanged) {
+        if(!wasPageFetched || pageChanged || globalFilterSpecies !== currentSpeciesTabAndSearch.search || activeSpeciesTabsFromUrls !== currentSpeciesTabAndSearch.tabSpecies) {
             resetLogWatcher();
             seenSpeciesRef.current = new Map();
             fetchedSpeciesPagesRef.current = new Set();
@@ -109,7 +108,7 @@ export const Species = () => {
             setSeenSpeciesCount(seenSpeciesRef.current.size);
         }
         previousSpeciesPagesRef.current = page;
-    }, [page, limit, species, isLoading, resetLogWatcher])
+    }, [page, limit, species, isLoading, resetLogWatcher, currentSpeciesTabAndSearch.search, globalFilterSpecies, activeSpeciesTabsFromUrls,  currentSpeciesTabAndSearch.tabSpecies])
 
     const hasFavoritesSpeciesInCurrentPage = useMemo(() => {
         const currentPageSpeciesIds = speciesIdArrCurrentPage();
@@ -287,13 +286,24 @@ export const Species = () => {
         }
     }, [species, paginatedFavorites, t, page, currentPageFavorites]);
 
+
+    const handleSpeciesGlobalFilter = useCallback(async (value: string) => {
+        await navigate({ search: (oldSearch) => ({ ...oldSearch, search: value, page: page})});
+    }, [navigate, page]);
+
+    const handleSpeciesTabActive = useCallback(async (value: string) => {
+        if(value === "all" || value === "favorites"){
+            return void(await navigate({search: (oldSearch) => ({...oldSearch, tabSpecies: value})}));
+        }
+    }, [navigate]);
+
     return (
         <PageTransitionWrapper>
             <div className="flex flex-col p-8 pt-6 space-y-6">
                 <div className="flex justify-center items-center">
                     <h2 className="text-3xl font-bold tracking-tight text-center">{t('speciesPageTitle')}</h2>
                 </div>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs value={activeSpeciesTabsFromUrls} onValueChange={handleSpeciesTabActive} className="w-full">
                     <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0 flex flex-wrap sm:flex-nowrap">
                         <TabsTrigger
                             value="all"
@@ -424,7 +434,7 @@ export const Species = () => {
                                         currentPageForDisplay: page,
                                     }}
                                     globalFilterValue={globalFilterSpecies}
-                                    onGlobalFilterChange={setGlobalFilterSpecies}
+                                    onGlobalFilterChange={handleSpeciesGlobalFilter}
                                 />
                                 {(species.length > 0 || globalFilterSpecies) && (
                                     <div className="mt-6 text-center">
@@ -712,7 +722,15 @@ export const Species = () => {
                                     </Card>
                                 )}
                                 {filterTextFavorites && favoritesSpecies.length === 0 && (
-                                    <p className="text-center text-destructive text-sm mt-4">{t('noFavoritesMatchFilter')}</p>
+                                    <div className="flex flex-col items-center justify-center p-6 gap-4">
+                                        <p className="text-center text-destructive text-sm sm:text-base mt-4">{t('noFavoritesMatchFilter')}</p>
+                                        <Button
+                                            className="cursor-pointer text-gray-400 text-xs sm:text-sm hover:text-destructive hover:scale-[0.98] active:scale-[0.98]" variant="ghost" size="sm"
+                                            onClick={() => setFilterTextFavorites('')}
+                                        >
+                                            {t("clearFilter")}
+                                        </Button>
+                                    </div>
                                 )}
                             </div>
                         )}

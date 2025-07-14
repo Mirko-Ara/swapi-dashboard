@@ -13,6 +13,13 @@ import { ProtectedRoute } from "./components/protected-route"
 import { Starships } from "./routes/starships";
 import { z  } from "zod";
 import {Species}  from "./routes/species";
+import { UserManagementPage } from "./routes/user-management";
+
+const baseSearchSchema = z.object({
+    page: z.number().int().min(1).catch(1),
+    limit: z.number().int().min(1).max(10).catch(10),
+    search: z.string().optional().catch(''),
+});
 
 const rootRoute = createRootRoute({
     component: App,
@@ -37,7 +44,9 @@ const usersRoute = createRoute({
     component: ProtectedRoute(Users),
     validateSearch: z.object({
         page: z.number().int().min(1).catch(1),
-        limit: z.number().int().max(10).catch(10)
+        limit: z.number().int().max(10).catch(10),
+        search: z.string().optional().catch(''),
+        tabCharacters: z.enum(["all", "favorites"]).catch("all"),
     }),
 });
 
@@ -47,31 +56,36 @@ const settingsRoute = createRoute({
     component: ProtectedRoute(Settings),
 });
 
-const starshipsRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: "/starships",
-    component: ProtectedRoute(Starships),
-    validateSearch: z.object({
-        page: z.number().int().min(1).catch(1),
-        limit: z.number().int().min(1).max(10).catch(10),
-    }),
-});
-
 const speciesRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/species",
     component: ProtectedRoute(Species),
-    validateSearch: z.object({
-            page: z.number().int().min(1).catch(1),
-            limit: z.number().int().min(1).max(10).catch(10),
+    validateSearch: baseSearchSchema.extend({
+        tabSpecies: z.enum(["all", "favorites"]).catch("all"),
     })
 });
+
+const starshipsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/starships",
+    component: ProtectedRoute(Starships),
+    validateSearch: baseSearchSchema.extend({
+        tabStarships: z.enum(["all", "favorites"]).catch("all"),
+    }),
+});
+
+const userManagementRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path:"/users management",
+    component: ProtectedRoute(UserManagementPage)
+})
 
 const routeTree = rootRoute.addChildren([
     loginRoute,
     dashboardRoute,
     usersRoute,
     settingsRoute,
+    userManagementRoute,
     starshipsRoute,
     speciesRoute
 ]);

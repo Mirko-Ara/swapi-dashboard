@@ -27,7 +27,7 @@ const ITEMS_PER_PAGE = 10;
 
 export const Starships = () => {
     const { t } = useTranslation();
-    const { page: pageStarships, limit } = useSearch({ from: '/starships'});
+    const { page: pageStarships, limit, search: globalFilterStarships, tabStarships: activeStarshipsTabFromUrls  } = useSearch({ from: '/starships'});
     const page = useMemo(() => Number(pageStarships) || 1, [pageStarships]);
     const { starships, isLoading, isRefetching, totalStarships, totalPages } = useSwapiStarships(page, limit);
     const navigate = useNavigate({ from: '/starships'});
@@ -35,18 +35,16 @@ export const Starships = () => {
     const {favorites, favoritesArray, toggleFavoriteStarships, clearAll, clearCurrentPageFavorites: clearStarshipFavoritesActualPage} = useFavoritesStarships();
     const [filterTextFavorites, setFilterTextFavorites] = useState("");
     const [goToPageInput, setGoToPageInput] = useState('');
-    const [activeTab, setActiveTab] = useState("all");
     const [currentPageFavorites, setCurrentPageFavorites] = useState(1);
     const [selectedStarship, setSelectedStarship] = useState<Starship | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const queryClient = useQueryClient();
     const { resetLogWatcher } = useStarshipsLogWatcher();
-    const [globalFilterStarships, setGlobalFilterStarships] = useState('');
     const seenStarshipsRef = useRef<Map<string, Starship>>(new Map());
     const fetchedPagesRef = useRef(new Set());
     const previousPagesRef = useRef(page);
     const [seenStarshipsCount, setSeenStarshipsCount] = useState(0);
-
+    const currentStarshipsTabAndSearch = useSearch({ from: '/starships'});
 
     const getOrdinalStarshipsFavoritesPagesSuffix = useCallback((number: number): string => {
         const s = ["th", "st", "nd", "rd"];
@@ -81,7 +79,7 @@ export const Starships = () => {
         const pageKey = `${page}-${limit}`;
         const wasPageFetched = fetchedPagesRef.current.has(pageKey);
         const pageChanged = previousPagesRef.current !== page;
-        if(!wasPageFetched || pageChanged) {
+        if(!wasPageFetched || pageChanged || globalFilterStarships !== currentStarshipsTabAndSearch.search || activeStarshipsTabFromUrls !== currentStarshipsTabAndSearch.tabStarships) {
             resetLogWatcher();
             seenStarshipsRef.current = new Map();
             fetchedPagesRef.current = new Set();
@@ -99,7 +97,7 @@ export const Starships = () => {
             setSeenStarshipsCount(seenStarshipsRef.current.size);
         }
         previousPagesRef.current = page;
-    }, [page, limit, starships, isLoading, resetLogWatcher]);
+    }, [page, limit, starships, isLoading, resetLogWatcher, currentStarshipsTabAndSearch.search, globalFilterStarships, activeStarshipsTabFromUrls, currentStarshipsTabAndSearch.tabStarships]);
 
     const hasFavoritesStarshipsInCurrentPage = useMemo(() => {
         const currentPageStarshipsIds = starshipsIdArrCurrentPage();
@@ -257,6 +255,16 @@ export const Starships = () => {
         });
     }, [navigate]);
 
+    const handleStarshipsGlobalFilter = useCallback(async (value: string) => {
+        await navigate({ search: (oldSearch) => ({ ...oldSearch, search: value, page: page }) });
+    }, [navigate, page]);
+
+    const handleStarshipsTabActive = useCallback(async (value: string)=> {
+        if(value === "favorites" || value === "all") {
+            await navigate({search: (oldSearch) => ({...oldSearch, tabStarships: value})});
+        }
+    }, [navigate]);
+
     const goToSpecificPageStarships = useCallback(async () => {
         const numberOfPage = parseInt(goToPageInput);
         if(numberOfPage > 0 && totalPages !== undefined && numberOfPage <= totalPages && numberOfPage !== page) {
@@ -305,7 +313,7 @@ export const Starships = () => {
                         {t('starshipsPageTitle')}
                     </h2>
                 </div>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs value={activeStarshipsTabFromUrls} onValueChange={handleStarshipsTabActive} className="w-full">
                     <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0 flex flex-wrap sm:flex-nowrap">
                         <TabsTrigger
                             value="all"
@@ -434,7 +442,7 @@ export const Starships = () => {
                                         currentPageForDisplay: page,
                                     }}
                                     globalFilterValue={globalFilterStarships}
-                                    onGlobalFilterChange={setGlobalFilterStarships}
+                                    onGlobalFilterChange={handleStarshipsGlobalFilter}
                                 />
                                 {(formattedStarships.length > 0 || globalFilterStarships) && (
                                     <div className="mt-6 text-center">
@@ -722,7 +730,15 @@ export const Starships = () => {
                                     </Card>
                                 )}
                                 {filterTextFavorites && favoritesStarships.length === 0 && (
-                                    <p className="text-center text-destructive text-sm mt-4">{t('noFavoritesMatchFilter')}</p>
+                                    <div className="flex flex-col items-center justify-center p-6 gap-4">
+                                        <p className="text-center text-destructive text-sm sm:text-base mt-4">{t('noFavoritesMatchFilter')}</p>
+                                            <Button
+                                            className="cursor-pointer text-xs text-gray-400 sm:text-sm hover:text-destructive hover:scale-[0.98] active:scale-[0.98]" variant="ghost" size="sm"
+                                            onClick={() => setFilterTextFavorites('')}
+                                            >
+                                                {t("clearFilter")}
+                                            </Button>
+                                    </div>
                                 )}
                             </div>
                         )}
