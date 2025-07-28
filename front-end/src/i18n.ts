@@ -5,6 +5,12 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            confirmClearAllFavoritesTitle: "Confirm Clear All Favorites",
+            confirmClearCurrentPageFavoritesTitle: "Confirm Clear Current Page Favorites",
+            confirmClearAllFavoritesDescription: "Are you sure you want to clear all favorites? This action cannot be undone.",
+            confirmClearCurrentPageFavoritesDescription: "Are you sure you want to clear favorites for the current page? This action cannot be undone.",
+            currentPageFavoritesClearedSuccess: "Current page favorites cleared successfully!",
+            allFavoritesClearedSuccess: "All favorites cleared successfully!",
             welcome: "Welcome {{username}} ({{email}})!",
             unauthorizedChangeRole: "Unauthorized to change role!",
             unauthorizedAction: "Unauthorized action!",
@@ -159,7 +165,7 @@ const resources = {
             totalRecordsForCharts: "Total Records",
             fetchingGenderPage: "Fetching gender data - page {{page}} of {{total}}...",
             errorFetchingGenderData: "Error fetching gender data",
-            resetAndRefetchGenderData: "Reset and refetch gender data",
+            resetAndRefetchGenderData: "Reset and Refetch Gender Data",
             allGenderDataLoaded: "All gender data loaded ({totalRecords} records",
             count: "Count",
             genderTwo: {
@@ -319,6 +325,12 @@ const resources = {
     },
     it: {
         translation: {
+            confirmClearAllFavoritesTitle: "Conferma Cancellazione di Tutti i Preferiti",
+            confirmClearCurrentPageFavoritesTitle: "Conferma Cancellazione dei Preferiti della Pagina Corrente",
+            confirmClearAllFavoritesDescription: "Sei sicuro di voler cancellare tutti i preferiti? Questa azione non può essere annullata.",
+            confirmClearCurrentPageFavoritesDescription: "Sei sicuro di voler cancellare i preferiti della pagina corrente? Questa azione non può essere annullata.",
+            currentPageFavoritesClearedSuccess: "La pagina corrente dei preferiti è stata cancellata con successo!",
+            allFavoritesClearedSuccess: "Tutti i preferiti sono stati cancellati con successo!",
             welcome: "Benvenuto {{username}} ({{email}})!",
             unauthorizedChangeRole: "azione non autorizzata per cambiare ruolo!",
             unauthorizedAction: "azione non autorizzata!",
@@ -632,6 +644,12 @@ const resources = {
     },
     es: {
         translation: {
+            confirmClearAllFavoritesTitle: "Confirmar Borrado de Todos los Favoritos",
+            confirmClearCurrentPageFavoritesTitle: "Confirmar Borrado de Favoritos de la Página Actual",
+            confirmClearAllFavoritesDescription: "¿Estás seguro de que deseas borrar todos los favoritos? Esta acción no se puede deshacer.",
+            confirmClearCurrentPageFavoritesDescription: "¿Estás seguro de que deseas borrar los favoritos de la página actual? Esta acción no se puede deshacer.",
+            currentPageFavoritesClearedSuccess: "¡La página actual de favoritos se ha borrado con éxito!",
+            allFavoritesClearedSuccess: "¡Todos los favoritos se han borrado con éxito!",
             welcome: "¡Bienvenido {{username}} ({{email}})!",
             unauthorizedChangeRole: "¡acción no autorizada para cambiar el rol!",
             unauthorizedAction: "¡acción no autorizada!",

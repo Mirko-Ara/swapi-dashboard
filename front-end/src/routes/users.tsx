@@ -22,7 +22,7 @@ import {toast} from "sonner";
 import i18n from "i18next";
 import { PageTransitionWrapper } from "@/components/ui/page-transition-wrapper";
 import {exportCsv, exportToJson} from "@/utils/export.ts";
-
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 
 const ITEMS_PER_PAGE_FAVORITES = 10;
 
@@ -47,6 +47,8 @@ const Users = () => {
     const [isMobile, setIsMobile] = useState(false);
     const [goToPageInput, setGoToPageInput] = useState('');
     const currentTabAndSearch = useSearch({ from: '/characters'});
+    const [isClearFavoritesModalOpen, setIsClearFavoritesModalOpen] = useState(false);
+    const [clearActionType, setClearActionType] = useState<'all' | 'current_page' | null>(null);
     // useEffect(() => {
     //     console.log("Starships Component mounted/updated.");
     //     console.log("Current i18n language:", i18n.language);
@@ -219,18 +221,32 @@ const Users = () => {
     }, [toggleFavoritePeople]);
 
     const handleClearAllFavorites = useCallback(() => {
-        clearAll();
-        setFilterTextFavorites('');
-        setCurrentPageFavorites(1);
-    }, [clearAll]);
+        setClearActionType('all');
+        setIsClearFavoritesModalOpen(true);
+    }, []);
 
     const handleClearCurrentPageFavorites = useCallback(() => {
-        const idsInCurrentPage = paginatedFavorites.map(p => p.url?.split('/').slice(-1)[0]).filter(Boolean) as string[];
-        if (idsInCurrentPage.length > 0) {
-            clearCurrentPageFavorites(idsInCurrentPage);
+        setClearActionType('current_page');
+        setIsClearFavoritesModalOpen(true);
+    }, []);
+
+    const handleConfirmClearFavorites = useCallback(() => {
+        setIsClearFavoritesModalOpen(false);
+        if(clearActionType === "all") {
+            clearAll();
             setFilterTextFavorites('');
+            setCurrentPageFavorites(1);
+            toast.success(t('allFavoritesClearedSuccess'));
+        } else if(clearActionType === "current_page") {
+            const idsInCurrentPage = paginatedFavorites.map(p => p.url?.split('/').slice(-1)[0]).filter(Boolean) as string[];
+            if (idsInCurrentPage.length > 0) {
+                clearCurrentPageFavorites(idsInCurrentPage);
+                setFilterTextFavorites('');
+                toast.success(t('currentPageFavoritesClearedSuccess'));
+            }
         }
-    }, [paginatedFavorites, clearCurrentPageFavorites]);
+        setClearActionType(null);
+    }, [clearAll, paginatedFavorites, clearCurrentPageFavorites, t, clearActionType]);
 
     const goToNextPagePeople = useCallback(async () => {
         await navigate({ search: (oldSearch) => ({ ...oldSearch, page: oldSearch.page + 1 }) });
@@ -729,6 +745,26 @@ const Users = () => {
                         onClose={handleCloseModal}
                     />
                 )}
+                <ConfirmationModal
+                    isOpen={isClearFavoritesModalOpen}
+                    onClose={() => {
+                        setIsClearFavoritesModalOpen(false);
+                        setClearActionType(null);
+                    }}
+                    onConfirm={handleConfirmClearFavorites}
+                    title={
+                        clearActionType === 'all' ?
+                        t('confirmClearAllFavoritesTitle') :
+                        t('confirmClearCurrentPageFavoritesTitle')
+                    }
+                    description={
+                        clearActionType === 'all' ?
+                        t('confirmClearAllFavoritesDescription') :
+                        t('confirmClearCurrentPageFavoritesDescription')
+                    }
+                    confirmButtonText={t('confirm')}
+                    cancelButtonText={t('cancel')}
+                />
             </div>
         </PageTransitionWrapper>
     );

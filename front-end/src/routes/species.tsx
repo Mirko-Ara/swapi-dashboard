@@ -32,6 +32,7 @@ import {LogWatcher} from "@/components/layout/log-watcher.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {exportCsv, exportToJson} from "@/utils/export.ts";
 import { PageTransitionWrapper } from "@/components/ui/page-transition-wrapper";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal.tsx";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -55,6 +56,8 @@ export const Species = () => {
     const previousSpeciesPagesRef = useRef<number>(page);
     const [seenSpeciesCount, setSeenSpeciesCount] = useState<number>(0);
     const currentSpeciesTabAndSearch = useSearch({ from: '/species'});
+    const [isClearFavoritesModalOpen, setIsClearFavoritesModalOpen] = useState(false);
+    const [clearActionType, setClearActionType] = useState<'all' | 'current_page' | null>(null);
 
     const getOrdinalSpeciesFavoritesPagesSuffix = useCallback((number: number): string => {
         const suffixes = ["th", "st", "nd", "rd"];
@@ -199,18 +202,32 @@ export const Species = () => {
     }, [favoritesSpecies.length, currentPageFavorites, favoritesSpecies]);
 
     const handleClearAllFavorites = useCallback(() => {
-        clearAll();
-        setCurrentPageFavorites(1);
-        setFilterTextFavorites('');
-    }, [clearAll]);
+        setClearActionType('all');
+        setIsClearFavoritesModalOpen(true);
+    }, []);
 
     const handleClearCurrentPageFavorites = useCallback(() => {
-        const idsInCurrentPage = paginatedFavorites.map(s => s.url?.split('/').slice(-1)[0]).filter(Boolean) as string[];
-        if(idsInCurrentPage.length > 0) {
-            clearSpeciesFavoritesActualPage(idsInCurrentPage);
-            setFilterTextFavorites('')
+        setClearActionType('current_page');
+        setIsClearFavoritesModalOpen(true);
+    }, []);
+
+    const handleSpeciesConfirmClearFavorites = useCallback(() => {
+        setIsClearFavoritesModalOpen(false);
+        if(clearActionType === "all") {
+            clearAll();
+            setFilterTextFavorites('');
+            setCurrentPageFavorites(1);
+            toast.success(t('allFavoritesClearedSuccess'));
+        } else if(clearActionType === "current_page") {
+            const idsInCurrentPage = paginatedFavorites.map(s => s.url?.split('/').slice(-1)[0]).filter(Boolean) as string[];
+            if (idsInCurrentPage.length > 0) {
+                clearSpeciesFavoritesActualPage(idsInCurrentPage);
+                setFilterTextFavorites('');
+                toast.success(t('currentPageFavoritesClearedSuccess'));
+            }
         }
-    }, [clearSpeciesFavoritesActualPage, paginatedFavorites]);
+        setClearActionType(null);
+    }, [clearActionType, clearAll, clearSpeciesFavoritesActualPage, paginatedFavorites, t]);
 
     const goToNextPageSpecies = useCallback(async () => {
         await navigate({
@@ -740,6 +757,26 @@ export const Species = () => {
                     isOpen={isModalOpen}
                     onClose={handleCloseModal}
                     species={selectedSpecies}
+                />
+                <ConfirmationModal
+                    isOpen={isClearFavoritesModalOpen}
+                    onClose={() => {
+                        setIsClearFavoritesModalOpen(false);
+                        setClearActionType(null);
+                    }}
+                    onConfirm={handleSpeciesConfirmClearFavorites}
+                    title={
+                        clearActionType === 'all' ?
+                            t('confirmClearAllFavoritesTitle') :
+                            t('confirmClearCurrentPageFavoritesTitle')
+                    }
+                    description={
+                        clearActionType === 'all' ?
+                            t('confirmClearAllFavoritesDescription') :
+                            t('confirmClearCurrentPageFavoritesDescription')
+                    }
+                    confirmButtonText={t('confirm')}
+                    cancelButtonText={t('cancel')}
                 />
             </div>
         </PageTransitionWrapper>

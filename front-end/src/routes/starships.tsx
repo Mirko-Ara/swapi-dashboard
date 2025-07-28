@@ -22,6 +22,7 @@ import i18n from "i18next";
 import { Download } from 'lucide-react';
 import { PageTransitionWrapper } from "@/components/ui/page-transition-wrapper";
 import { exportCsv, exportToJson} from '@/utils/export';
+import {ConfirmationModal} from "@/components/ui/confirmation-modal.tsx";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -45,6 +46,8 @@ export const Starships = () => {
     const previousPagesRef = useRef(page);
     const [seenStarshipsCount, setSeenStarshipsCount] = useState(0);
     const currentStarshipsTabAndSearch = useSearch({ from: '/starships'});
+    const [isClearFavoritesModalOpen, setIsClearFavoritesModalOpen] = useState(false);
+    const [clearActionType, setClearActionType] = useState<"all" | "current_page" | null>(null);
 
     const getOrdinalStarshipsFavoritesPagesSuffix = useCallback((number: number): string => {
         const s = ["th", "st", "nd", "rd"];
@@ -214,18 +217,32 @@ export const Starships = () => {
     }, [favoritesStarships.length, currentPageFavorites, favoritesStarships]);
 
     const handleClearAllFavorites = useCallback(() => {
-        clearAll();
-        setCurrentPageFavorites(1);
-        setFilterTextFavorites('');
-    }, [clearAll]);
+        setIsClearFavoritesModalOpen(true);
+        setClearActionType("all");
+    }, []);
 
     const handleClearCurrentPageFavorites = useCallback(() => {
-        const idsInCurrentPage = paginatedFavorites.map(starship => starship.url?.split('/').slice(-1)[0]).filter(Boolean) as string[];
-        if(idsInCurrentPage.length > 0) {
-            clearStarshipFavoritesActualPage(idsInCurrentPage);
-            setFilterTextFavorites('')
+        setIsClearFavoritesModalOpen(true);
+        setClearActionType("current_page")
+    }, []);
+
+    const handleStarshipsConfirmClearFavorites = useCallback(() => {
+        setIsClearFavoritesModalOpen(false);
+        if(clearActionType === "all") {
+            clearAll();
+            setFilterTextFavorites('');
+            setCurrentPageFavorites(1);
+            toast.success(t('allFavoritesClearedSuccess'));
+        } else if(clearActionType === "current_page") {
+            const idsInCurrentPage = paginatedFavorites.map(starship => starship.url?.split('/').slice(-1)[0]).filter(Boolean) as string[];
+            if (idsInCurrentPage.length > 0) {
+                clearStarshipFavoritesActualPage(idsInCurrentPage);
+                setFilterTextFavorites('');
+                toast.success(t('currentPageFavoritesClearedSuccess'));
+            }
         }
-    }, [clearStarshipFavoritesActualPage, paginatedFavorites]);
+        setClearActionType(null);
+    }, [clearAll, paginatedFavorites, clearStarshipFavoritesActualPage, t, clearActionType]);
 
     const goToNextPageStarships = useCallback(async function () {
         await navigate({
@@ -748,6 +765,26 @@ export const Starships = () => {
                     isOpen={isModalOpen}
                     onClose={handleCloseModal}
                     starship={selectedStarship}
+                />
+                <ConfirmationModal
+                    isOpen={isClearFavoritesModalOpen}
+                    onClose={() => {
+                        setIsClearFavoritesModalOpen(false);
+                        setClearActionType(null);
+                    }}
+                    onConfirm={handleStarshipsConfirmClearFavorites}
+                    title={
+                        clearActionType === 'all' ?
+                            t('confirmClearAllFavoritesTitle') :
+                            t('confirmClearCurrentPageFavoritesTitle')
+                    }
+                    description={
+                        clearActionType === 'all' ?
+                            t('confirmClearAllFavoritesDescription') :
+                            t('confirmClearCurrentPageFavoritesDescription')
+                    }
+                    confirmButtonText={t('confirm')}
+                    cancelButtonText={t('cancel')}
                 />
             </div>
         </PageTransitionWrapper>
