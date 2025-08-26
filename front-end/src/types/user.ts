@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export interface PasswordChangeRequest {
+    currentPassword: string;
+    newPassword: string;
+}
+
 export const UserRoleSchema = z.enum(['admin', 'editor', 'viewer']);
 export type UserRole = z.infer<typeof UserRoleSchema>;
 

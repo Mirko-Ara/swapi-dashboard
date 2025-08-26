@@ -5,6 +5,8 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            errorUpdatingPassword: "Error updating password!",
+            passwordUpdatedSuccessfully: "Password updated successfully!",
             confirmClearAllFavoritesTitle: "Confirm Clear All Favorites",
             confirmClearCurrentPageFavoritesTitle: "Confirm Clear Current Page Favorites",
             confirmClearAllFavoritesDescription: "Are you sure you want to clear all favorites? This action cannot be undone.",
@@ -325,6 +327,8 @@ const resources = {
     },
     it: {
         translation: {
+            errorUpdatingPassword: "Errore nell'aggiornamento della password!",
+            passwordUpdatedSuccessfully: "Password aggiornata con successo!",
             confirmClearAllFavoritesTitle: "Conferma Cancellazione di Tutti i Preferiti",
             confirmClearCurrentPageFavoritesTitle: "Conferma Cancellazione dei Preferiti della Pagina Corrente",
             confirmClearAllFavoritesDescription: "Sei sicuro di voler cancellare tutti i preferiti? Questa azione non può essere annullata.",
@@ -644,6 +648,8 @@ const resources = {
     },
     es: {
         translation: {
+            errorUpdatingPassword: "¡Error al actualizar la contraseña!",
+            passwordUpdatedSuccessfully: "¡Contraseña actualizada con éxito!",
             confirmClearAllFavoritesTitle: "Confirmar Borrado de Todos los Favoritos",
             confirmClearCurrentPageFavoritesTitle: "Confirmar Borrado de Favoritos de la Página Actual",
             confirmClearAllFavoritesDescription: "¿Estás seguro de que deseas borrar todos los favoritos? Esta acción no se puede deshacer.",

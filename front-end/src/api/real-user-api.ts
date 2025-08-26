@@ -1,6 +1,7 @@
-import { type User, type UserCreateUpdate } from '@/types/user';
+import type { User,  UserCreateUpdate, PasswordChangeRequest  } from '@/types/user';
 
-const API_BASE_URL = 'http://localhost:8080/api/users';
+const API_BASE_URL = 'http://localhost:8080/api/users' as const;
+const API_BASE_URL_AUTH = 'http://localhost:8080/api/auth' as const;
 
 
 async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
@@ -89,6 +90,16 @@ export const realUserApi = {
         if(!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || `Failed to delete user ${id} on backend`);
+        }
+    },
+    async changePassword(data: PasswordChangeRequest): Promise<void> {
+        const response = await authenticatedFetch(`${API_BASE_URL_AUTH}/change-password`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        if(!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Failed to change password on backend`);
         }
     }
 }

@@ -19,9 +19,7 @@ import {useDispatch, useSelector} from "react-redux";
 import type {AppDispatch, RootState} from "@/store/store-index.ts";
 import { toggleFunFactWidget } from '@/store/settings-slice';
 import { useAuth } from '@/hooks/use-auth.ts';
-
-// import {toast} from "sonner";
-// import {useUpdateUser} from "@/hooks/use-users.ts";
+import {useUpdatePassword} from "@/hooks/use-users.ts";
 
 const profileFormSchema = z.object({
    firstName: z.string()
@@ -40,7 +38,7 @@ const accountFormSchema = z.object({
         .min(6, { message: "Password must be at least 6 characters long" })
         .max(50, { message: "Password must not exceed 50 characters" }),
     confirmPassword: z.string()
-        .min(6, { message: "Password must be at least 6 characters long" }),
+        .min(1, { message: "Confirm password is required" }),
 }).refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
@@ -49,7 +47,8 @@ const accountFormSchema = z.object({
 const Settings = () => {
     const { t, i18n } = useTranslation();
     const { theme, setTheme } = useTheme();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+    const [isLoadingAppearance, setIsLoadingAppearance] = useState(false);
     const STORAGE_KEY = "twoFactorAuthEnabled" as const;
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
         if(typeof window !== "undefined") {
@@ -74,9 +73,6 @@ const Settings = () => {
     },  [dispatch]);
 
 
-    // const updateUserMutation = useUpdateUser(handleUpdateSuccess);
-
-
     const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: {
@@ -95,34 +91,35 @@ const Settings = () => {
         },
     });
 
-    // const handlePasswordUpdateSuccess = useCallback(() => {
-    //     toast.success(t('passwordUpdatedSuccessfully'));
-    //     accountForm.reset(); // Resetta il form della password dopo un cambio successo
-    // }, [accountForm, t]);
+    const updateUserPasswordMutation = useUpdatePassword();
 
     const handleSaveProfile = (values: z.infer<typeof profileFormSchema>) => {
-        setIsLoading(true);
+        setIsLoadingProfile(true);
         console.log("Profile data saved:", values);
-        setTimeout(() => setIsLoading(false), 800);
+        setTimeout(() => setIsLoadingProfile(false), 800);
     };
 
     const handleUpdatePassword = useCallback((values: z.infer<typeof accountFormSchema>) => {
-        setIsLoading(true);
-        console.log("Password updated:", values);
-        setTimeout(() => {
+        updateUserPasswordMutation.mutate({
+            currentPassword: values.currentPassword,
+            newPassword: values.newPassword
+        });
+        if(!updateUserPasswordMutation.isPending) {
             accountForm.reset();
-            setIsLoading(false);
-        }, 800);
-    }, [accountForm]);
+            if(updateUserPasswordMutation.isSuccess) {
+                console.log("Password updated:", values);
+            }
+        }
+    }, [accountForm, updateUserPasswordMutation]);
 
     const handleResetProfile = useCallback(() => {
         profileForm.reset();
     }, [profileForm]);
 
     const handleSaveAppearance = useCallback(() => {
-        setIsLoading(true);
+        setIsLoadingAppearance(true);
         console.log("Appearance saved:", {theme, language: i18n.language});
-        setTimeout(() => setIsLoading(false), 800);
+        setTimeout(() => setIsLoadingAppearance(false), 800);
     }, [theme, i18n.language]);
 
     const handleThemeToggle = useCallback(() => {
@@ -245,8 +242,8 @@ const Settings = () => {
                                             >
                                                 {t("cancel")}
                                             </Button>
-                                            <Button className="cursor-pointer w-full sm:w-auto" type="submit" disabled={isLoading}>
-                                                {isLoading ? t("saving") : t("saveChanges")}
+                                            <Button className="cursor-pointer w-full sm:w-auto" type="submit" disabled={isLoadingProfile}>
+                                                {isLoadingProfile ? t("saving") : t("saveChanges")}
                                             </Button>
                                         </CardFooter>
                                     </form>
@@ -352,9 +349,9 @@ const Settings = () => {
                                             <Button
                                                 className="cursor-pointer w-full sm:w-auto"
                                                 type="submit"
-                                                disabled={isLoading}
+                                                disabled={updateUserPasswordMutation.isPending}
                                             >
-                                                {isLoading ? t("saving") : t("updatePassword")}
+                                                {updateUserPasswordMutation.isPending ? t("saving") : t("updatePassword")}
                                             </Button>
                                         </CardFooter>
                                     </form>
@@ -441,8 +438,8 @@ const Settings = () => {
                                     </div>
                                 </CardContent>
                                 <CardFooter className="flex justify-center items-center md:justify-end border-t pt-4">
-                                    <Button className="cursor-pointer" onClick={handleSaveAppearance} disabled={isLoading}>
-                                        {isLoading ? t("saving") : t("savePreferences")}
+                                    <Button className="cursor-pointer" onClick={handleSaveAppearance} disabled={isLoadingAppearance}>
+                                        {isLoadingAppearance ? t("saving") : t("savePreferences")}
                                     </Button>
                                 </CardFooter>
                             </Card>

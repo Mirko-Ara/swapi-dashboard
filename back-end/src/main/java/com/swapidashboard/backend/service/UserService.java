@@ -1,9 +1,9 @@
 package com.swapidashboard.backend.service;
 
+import com.swapidashboard.backend.dto.PasswordChangeRequest;
 import com.swapidashboard.backend.dto.UserCreateUpdateDTO;
 import com.swapidashboard.backend.model.User;
 import com.swapidashboard.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -66,6 +66,7 @@ public class UserService implements UserDetailsService {
         return userRepository.save(newUser);
     }
 
+
     public User updateUser(UUID id, UserCreateUpdateDTO updates) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
@@ -81,6 +82,18 @@ public class UserService implements UserDetailsService {
 
         return userRepository.save(user);
     }
+
+    public void changePassword(String usernameOrEmail, PasswordChangeRequest request) {
+        User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect.");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
 
     public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {

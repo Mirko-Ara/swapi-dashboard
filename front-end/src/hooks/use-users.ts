@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { realUserApi } from '@/api/real-user-api';
-import {type User, type UserCreateUpdate} from '@/types/user';
+import {type User, type UserCreateUpdate, type PasswordChangeRequest} from '@/types/user';
 import {toast} from "sonner";
+import { useTranslation } from 'react-i18next';
 
-const USER_QUERY_KEY = 'users';
+const USER_QUERY_KEY = 'users'
 
 export const useUsers = () => {
     return useQuery<User[], Error>({
@@ -63,6 +64,7 @@ export const useUpdateUser = (onSuccessCallback?: () => void) => {
         },
         onError: (error) => {
             console.error("Error updating user:", error.message);
+            toast.error(error.message);
         }
     });
 };
@@ -78,6 +80,26 @@ export const useDeleteUser = () => {
         },
          onError: (error) => {
              console.error("Error deleting user:", error.message);
+             toast.error(error.message);
          }
      });
 }
+
+export const useUpdatePassword = (onSuccessCallback?: () => void) => {
+    const queryClient = useQueryClient();
+    const { t } = useTranslation();
+    return useMutation<void, Error, PasswordChangeRequest>({
+        mutationFn: async (data: PasswordChangeRequest) => {
+            return await realUserApi.changePassword(data);
+        },
+        onSuccess: () => {
+            toast.success(t('passwordUpdatedSuccessfully'));
+            queryClient.invalidateQueries({ queryKey: [USER_QUERY_KEY] }).catch((error) => console.error('Failed to invalidate queries: ', error));
+            onSuccessCallback?.()
+        },
+        onError: (error) => {
+            console.error("Error updating password: ", error.message);
+            toast.error(t('errorUpdatingPassword') + ` ${error.message}`);
+        }
+    });
+};
