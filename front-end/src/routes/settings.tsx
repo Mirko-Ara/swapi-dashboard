@@ -19,15 +19,15 @@ import {useDispatch, useSelector} from "react-redux";
 import type {AppDispatch, RootState} from "@/store/store-index.ts";
 import { toggleFunFactWidget } from '@/store/settings-slice';
 import { useAuth } from '@/hooks/use-auth.ts';
-import {useUpdatePassword} from "@/hooks/use-users.ts";
+import {useUpdatePassword, useUpdateUserProfile} from "@/hooks/use-users.ts";
+import {useRouter} from "@tanstack/react-router";
+import { CircleAlert } from 'lucide-react';
+import {LoaderSpinner} from "@/components/layout/loader-spinner.tsx";
 
 const profileFormSchema = z.object({
-   firstName: z.string()
-       .min(2, {message: "First name must be at least 2 characters long"})
-       .max(30, {message: "First name must not exceed 30 characters"}),
-    lastName: z.string()
-        .min(2, {message: "Last name must be at least 10 characters long"})
-        .max(20, {message: "Last name must not exceed 20 characters"}),
+   username: z.string()
+       .min(3, {message: "Username must be at least 3 characters long"})
+       .max(30, {message: "Username must not exceed 30 characters"}),
     email: z.string().email("Please enter a valid email address"),
 });
 
@@ -47,7 +47,9 @@ const accountFormSchema = z.object({
 const Settings = () => {
     const { t, i18n } = useTranslation();
     const { theme, setTheme } = useTheme();
-    const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+    const { logout } = useAuth();
+    const router = useRouter();
+    const [logoutRedirecting, setLogOutRedirecting] = useState(false);
     const [isLoadingAppearance, setIsLoadingAppearance] = useState(false);
     const STORAGE_KEY = "twoFactorAuthEnabled" as const;
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -60,7 +62,6 @@ const Settings = () => {
     const funFactWidgetEnabled = useSelector((state: RootState) => state.settings.funFactWidgetEnabled);
     const { currentUser } = useAuth();
     const { email, username } = currentUser || {};
-
     const handleToggle2FA = useCallback((checked: boolean) => {
         setIsEnabled(checked);
         if (typeof window !== "undefined") {
@@ -68,16 +69,10 @@ const Settings = () => {
         }
     }, [STORAGE_KEY]);
 
-    const handleToggleFunFact = useCallback((checked: boolean) => {
-        dispatch(toggleFunFactWidget(checked));
-    },  [dispatch]);
-
-
     const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: {
-            firstName: "",
-            lastName: "",
+            username: "",
             email: ""
         },
     });
@@ -91,23 +86,50 @@ const Settings = () => {
         },
     });
 
-    const updateUserPasswordMutation = useUpdatePassword();
+    const handleToggleFunFact = useCallback((checked: boolean) => {
+        dispatch(toggleFunFactWidget(checked));
+    },  [dispatch]);
 
-    const handleSaveProfile = (values: z.infer<typeof profileFormSchema>) => {
-        setIsLoadingProfile(true);
-        console.log("Profile data saved:", values);
-        setTimeout(() => setIsLoadingProfile(false), 800);
-    };
+    const handleLogout = useCallback(() => {
+        setLogOutRedirecting(true);
+        setTimeout(async () => {
+            try {
+                logout();
+                await router.navigate({ to: "/" })
+            } catch (error) {
+                console.error("Error during redirection: ", error);
+            }
+        }, 900);
+    }, [logout, router]);
+    
+    const updateUserPasswordMutation = useUpdatePassword(handleLogout);
+    const updateUserUsernameAndEmail = useUpdateUserProfile(handleLogout);
+
+    const handleUpdateAndSaveProfile = useCallback((values: z.infer<typeof profileFormSchema>) => {
+        const updates = {
+            username: values.username.trim(),
+            email: values.email.trim(),
+        };
+        try{
+            updateUserUsernameAndEmail.mutate(updates);
+        }
+        catch (error) {
+            console.error("Error saving profile:", error);
+        }
+        if(!updateUserUsernameAndEmail.isPending) {
+            profileForm.reset();
+        }
+    }, [profileForm, updateUserUsernameAndEmail]);
 
     const handleUpdatePassword = useCallback((values: z.infer<typeof accountFormSchema>) => {
         updateUserPasswordMutation.mutate({
-            currentPassword: values.currentPassword,
-            newPassword: values.newPassword
+            currentPassword: values.currentPassword.trim(),
+            newPassword: values.newPassword.trim()
         });
         if(!updateUserPasswordMutation.isPending) {
             accountForm.reset();
             if(updateUserPasswordMutation.isSuccess) {
-                console.log("Password updated:", values);
+                console.log("Password updated successfully");
             }
         }
     }, [accountForm, updateUserPasswordMutation]);
@@ -126,13 +148,23 @@ const Settings = () => {
         setTheme(theme === "dark" ? "light" : "dark");
     }, [setTheme, theme]);
 
-
+    if (logoutRedirecting) {
+        return (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 w-full h-screen bg-background">
+                <LoaderSpinner size="xl"/>
+                <p className="text-xl text-muted-foreground font-medium">
+                    {t('loggingOut')}
+                </p>
+            </div>
+        );
+    }
+    
     return (
         <PageTransitionWrapper>
             <div className="flex flex-col w-full max-w-3xl mx-auto">
                 <div className="flex-1 space-y-6 p-4 sm:p-8 pt-6">
                     <div className="flex items-center justify-center sm:justify-between">
-                        <h2 className="text-[2.25rem] text-center font-bold tracking-tight"> {email && username ? t("welcome", {email: email, username: username}) : t("settings")}</h2>
+                        <h2 className="text-md sm:text-[2.25rem] text-center font-bold tracking-tight"> {email && username ? t("welcome", {email: email, username: username}) : t("settings")}</h2>
                     </div>
 
                     <Tabs defaultValue="profile" className="space-y-6">
@@ -158,12 +190,12 @@ const Settings = () => {
                         </TabsList>
                         <TabsContent value="profile">
                             <Card>
-                                <CardHeader>
+                                <CardHeader className="text-center sm:text-left">
                                     <CardTitle>{t("userProfile")}</CardTitle>
                                     <CardDescription>{t("manageProfileInfo")}</CardDescription>
                                 </CardHeader>
                                 <Form {...profileForm}>
-                                    <form onSubmit={profileForm.handleSubmit(handleSaveProfile)}>
+                                    <form onSubmit={profileForm.handleSubmit(handleUpdateAndSaveProfile)}>
                                         <CardContent className="space-y-5">
                                             <div className="flex flex-col sm:flex-row items-center gap-4 pb-2">
                                                 <Avatar className="h-24 w-24">
@@ -172,61 +204,48 @@ const Settings = () => {
                                                 </Avatar>
                                                 <Button variant="outline" size="sm" className="cursor-pointer">{t("changeAvatar")}</Button>
                                             </div>
-                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                <FormField
-                                                    control={profileForm.control}
-                                                    name="firstName"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>{t("firstName")}</FormLabel>
-                                                            <FormControl>
-                                                                <Input
-                                                                    placeholder={t("enterYour") + " " + t("firstName")}
-                                                                    {...field}
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage className="text-red-500">
-                                                                {profileForm.formState.errors.firstName?.message}
-                                                            </FormMessage>
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={profileForm.control}
-                                                    name="lastName"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>{t("lastName")}</FormLabel>
-                                                            <FormControl>
-                                                                <Input
-                                                                    placeholder={t("enterYour") + " " + t("lastName")}
-                                                                    {...field}
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage className="text-red-500" >
-                                                                {profileForm.formState.errors.lastName?.message}
-                                                            </FormMessage>
-                                                        </FormItem>
-                                                    )}
-                                                />
+                                            <div className="flex flex-col sm:flex-row items-center justify-start gap-2 mt-2 mb-2 pt-2 pb-2">
+                                                <CircleAlert className="h-5 w-5 dark:text-muted-foreground"/>
+                                                <p className="text-xs dark:text-muted-foreground">{t("logoutAlertAfterEmailAndUsernameChange")}</p>
                                             </div>
                                             <div className="w-full overflow-x-auto sm:overflow-visible">
                                                 <FormField
                                                     control={profileForm.control}
                                                     name="email"
                                                     render={({ field }) => (
-                                                        <FormItem className="mb-10 min-w-[300px]">
+                                                        <FormItem>
                                                             <FormLabel>Email</FormLabel>
                                                             <FormControl>
                                                                 <Input
-                                                                    className="min-w-[250px] sm:min-w-0"
-                                                                    placeholder={t("enterYourEmail")}
+                                                                    placeholder={t("enterYourNewEmail")}
                                                                     type="email"
                                                                     {...field}
                                                                 />
                                                             </FormControl>
                                                             <FormMessage className="text-red-500">
                                                                 {profileForm.formState.errors.email?.message}
+                                                            </FormMessage>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div className="-full overflow-x-auto sm:overflow-visible">
+                                                <FormField
+                                                    control={profileForm.control}
+                                                    name="username"
+                                                    render={({ field }) => (
+                                                        <FormItem className="mb-10 min-w-[300px]">
+                                                            <FormLabel>{t("username")}</FormLabel>
+                                                            <FormControl>
+                                                                <Input
+                                                                    className="min-w-[250px] sm:min-w-0"
+                                                                    type="text"
+                                                                    placeholder={t("enterYourNewUsername")}
+                                                                    {...field}
+                                                                />
+                                                            </FormControl>
+                                                            <FormMessage className="text-red-500">
+                                                                {profileForm.formState.errors.username?.message}
                                                             </FormMessage>
                                                         </FormItem>
                                                     )}
@@ -242,8 +261,8 @@ const Settings = () => {
                                             >
                                                 {t("cancel")}
                                             </Button>
-                                            <Button className="cursor-pointer w-full sm:w-auto" type="submit" disabled={isLoadingProfile}>
-                                                {isLoadingProfile ? t("saving") : t("saveChanges")}
+                                            <Button className="cursor-pointer w-full sm:w-auto" type="submit" disabled={updateUserUsernameAndEmail.isPending}>
+                                                {updateUserUsernameAndEmail.isPending ? t("saving") : t("saveChanges")}
                                             </Button>
                                         </CardFooter>
                                     </form>
@@ -256,6 +275,10 @@ const Settings = () => {
                                 <CardHeader>
                                     <CardTitle>{t("accountSettings")}</CardTitle>
                                     <CardDescription>{t("manageAccountSettings")}</CardDescription>
+                                    <div className="flex flex-col sm:flex-row items-center justify-start gap-2 mt-5 mb-2 pt-2 pb-2">
+                                        <CircleAlert className="h-5 w-5 dark:text-muted-foreground"/>
+                                        <p className="text-xs dark:text-muted-foreground">{t("logoutAlertAfterPasswordChange")}</p>
+                                    </div>
                                 </CardHeader>
                                 <Form {...accountForm}>
                                     <form onSubmit={accountForm.handleSubmit(handleUpdatePassword)}>

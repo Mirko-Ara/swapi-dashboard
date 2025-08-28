@@ -5,6 +5,9 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
+            logoutAlertAfterPasswordChange: "if you change your password, for security reasons you will be logged out and will need to log in again with your new password!",
+            logoutAlertAfterEmailAndUsernameChange: "if you change your email and username, for security reasons you will be logged out and will need to log in again with your new credentials!",
+            usernameAndEmailUpdatedSuccessfully: "Username and email updated successfully!",
             errorUpdatingPassword: "Error updating password!",
             passwordUpdatedSuccessfully: "Password updated successfully!",
             confirmClearAllFavoritesTitle: "Confirm Clear All Favorites",
@@ -287,7 +290,8 @@ const resources = {
             darkMode: "Switch to dark mode",
             userProfile: 'User Profile',
             enterYour: 'Enter your',
-            enterYourEmail: 'Enter your email',
+            enterYourNewEmail: 'Enter your new email ...',
+            enterYourNewUsername: 'Enter your new username ...',
             enterYourPassword: "Enter your password",
             saveChanges: 'Save changes',
             firstName: 'First Name',
@@ -327,6 +331,9 @@ const resources = {
     },
     it: {
         translation: {
+            logoutAlertAfterPasswordChange: "se cambi la password, per motivi di sicurezza verrai disconnesso e dovrai effettuare nuovamente il login con la nuova password!",
+            logoutAlertAfterEmailAndUsernameChange: "se cambi email e username, per motivi di sicurezza verrai disconnesso e dovrai effettuare nuovamente il login con le nuove credenziali!",
+            usernameAndEmailUpdatedSuccessfully: "Username ed email aggiornati con successo!",
             errorUpdatingPassword: "Errore nell'aggiornamento della password!",
             passwordUpdatedSuccessfully: "Password aggiornata con successo!",
             confirmClearAllFavoritesTitle: "Conferma Cancellazione di Tutti i Preferiti",
@@ -608,7 +615,8 @@ const resources = {
             darkMode: "Cambia in modalità scuro",
             userProfile: 'Profilo utente',
             enterYour: 'Inserisci il tuo',
-            enterYourEmail: 'Inserisci il tuo indirizzo email',
+            enterYourNewEmail: 'Inserisci il tuo nuovo indirizzo email ...',
+            enterYourNewUsername: 'Inserisci il tuo nuovo username ...',
             enterYourPassword: 'Inserisci la tua password',
             saveChanges: 'Salva modifiche',
             firstName: 'Nome',
@@ -648,6 +656,9 @@ const resources = {
     },
     es: {
         translation: {
+            logoutAlertAfterPasswordChange: "¡si cambias la contraseña, por razones de seguridad se cerrará la sesión y tendrás que iniciar sesión nuevamente con la nueva contraseña!",
+            logoutAlertAfterEmailAndUsernameChange: "¡si cambias el correo electrónico y el nombre de usuario, por razones de seguridad se cerrará la sesión y tendrás que iniciar sesión nuevamente con las nuevas credenciales!",
+            usernameAndEmailUpdatedSuccessfully: "¡Nombre de usuario y correo electrónico actualizados con éxito!",
             errorUpdatingPassword: "¡Error al actualizar la contraseña!",
             passwordUpdatedSuccessfully: "¡Contraseña actualizada con éxito!",
             confirmClearAllFavoritesTitle: "Confirmar Borrado de Todos los Favoritos",
@@ -930,7 +941,8 @@ const resources = {
             darkMode: "Cambia a modo oscuro",
             userProfile: 'Perfil de usuario',
             enterYour: 'Introduce tu',
-            enterYourEmail: 'Introduce tu correo electrónico',
+            enterYourNewEmail: 'Introduce tu nuevo correo electrónico ...',
+            enterYourNewUsername: 'Introduce tu nuevo nombre de usuario ...',
             enterYourPassword: 'Introduce tu contraseña',
             saveChanges: 'Guardar cambios',
             firstName: 'Nombre',

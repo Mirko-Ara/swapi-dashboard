@@ -1,15 +1,19 @@
 package com.swapidashboard.backend.controller;
 
 import com.swapidashboard.backend.dto.UserCreateUpdateDTO;
+import com.swapidashboard.backend.dto.UserProfileUpdateDTO;
 import com.swapidashboard.backend.model.User;
 import com.swapidashboard.backend.service.UserService;
+import org.springframework.security.core.userdetails.UserDetails;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -37,6 +41,25 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/profile")
+    public ResponseEntity<User> updateMyProfile(@RequestBody UserProfileUpdateDTO profileDto, Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails userDetails) {
+            Optional<User> authenticatedUserOpt = userService.findByUsername(userDetails.getUsername());
+
+            if (authenticatedUserOpt.isPresent()) {
+                User authenticatedUser = authenticatedUserOpt.get();
+                Optional<User> updatedUserOpt = userService.updateUserProfile(authenticatedUser.getId(), profileDto);
+                return updatedUserOpt.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Utente non trovato, non autorizzato
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Tipo di autenticazione non supportato
+        }
+    }
     // POST /api/users
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody UserCreateUpdateDTO userData) {

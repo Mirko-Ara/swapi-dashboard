@@ -208,7 +208,7 @@ export const UserManagementPage = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                            <form onSubmit={handleSubmit( onSubmit)} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="username">{t('users1.form.username')}</Label>
@@ -290,7 +290,6 @@ export const UserManagementPage = () => {
                                         {t('users1.form.active')}
                                     </Label>
                                 </div>
-
                                 <div className="flex flex-col sm:flex-row gap-2 pt-4">
                                     {canCreateUsers && !editingUser && (
                                         <Button

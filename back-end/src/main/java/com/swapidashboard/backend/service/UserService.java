@@ -2,8 +2,10 @@ package com.swapidashboard.backend.service;
 
 import com.swapidashboard.backend.dto.PasswordChangeRequest;
 import com.swapidashboard.backend.dto.UserCreateUpdateDTO;
+import com.swapidashboard.backend.dto.UserProfileUpdateDTO;
 import com.swapidashboard.backend.model.User;
 import com.swapidashboard.backend.repository.UserRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 import java.util.ArrayList;
+import java.util.Optional;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -31,10 +34,8 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByUsernameOrEmail(email, email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email or username: " + email));
-
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name().toUpperCase()));
-
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
@@ -46,10 +47,31 @@ public class UserService implements UserDetailsService {
         );
     }
 
+    public Optional<User> updateUserProfile(UUID id, UserProfileUpdateDTO profileDto) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if(userOptional.isPresent()) {
+            User user = userOptional.get();
+            if(profileDto.getUsername() != null && !profileDto.getUsername().isEmpty()) {
+                user.setUsername(profileDto.getUsername());
+            }
+            if(profileDto.getEmail() != null && !profileDto.getEmail().isEmpty()) {
+                user.setEmail(profileDto.getEmail());
+            }
+            if(profileDto.getPassword() != null && !profileDto.getPassword().isEmpty()) {
+                user.setPassword(passwordEncoder.encode(profileDto.getPassword()));
+            }
+            return Optional.of(userRepository.save(user));
+        }
+        return Optional.empty();
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('EDITOR') or hasRole('VIEWER')")
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+
+    @PreAuthorize("hasRole('ADMIN')")
     public User createUser(UserCreateUpdateDTO userData) {
         userRepository.findByUsernameOrEmail(userData.getUsername(), userData.getEmail())
                 .ifPresent(u -> {
@@ -66,6 +88,9 @@ public class UserService implements UserDetailsService {
         return userRepository.save(newUser);
     }
 
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsernameOrEmail(username, username);
+    }
 
     public User updateUser(UUID id, UserCreateUpdateDTO updates) {
         User user = userRepository.findById(id)
@@ -94,7 +119,7 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User with id " + id + " not found");

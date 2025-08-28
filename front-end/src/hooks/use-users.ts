@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { realUserApi } from '@/api/real-user-api';
-import {type User, type UserCreateUpdate, type PasswordChangeRequest} from '@/types/user';
+import type { User, UserCreateUpdate, PasswordChangeRequest, UserProfileUpdate} from '@/types/user';
 import {toast} from "sonner";
 import { useTranslation } from 'react-i18next';
 
@@ -40,6 +40,32 @@ export const useCreateUser = (onSuccessCallback?: () => void) => {
         },
         onError: (error) => {
             console.error('Error creating user: ', error);
+            toast.error(error.message);
+        }
+    });
+};
+
+export const useUpdateUserProfile = (onSuccessCallback?: () => void) => {
+    const queryClient = useQueryClient();
+    const { t } = useTranslation();
+    return useMutation<User, Error, Partial<UserProfileUpdate>>({
+        mutationFn: async (updates) => {
+            const result = await realUserApi.updateUserProfile(updates);
+            if(!result) {
+                throw new Error("Failed to update user profile");
+            }
+            return result;
+        },
+        onSuccess: (_, variables) => {
+            toast.success(t('usernameAndEmailUpdatedSuccessfully'));
+            queryClient.invalidateQueries({ queryKey: [USER_QUERY_KEY]}).catch((error) => console.error('Failed to invalidate queries: ', error));
+            queryClient.invalidateQueries({ queryKey: [USER_QUERY_KEY, variables.id] }).catch((error) => console.error('Failed to invalidate user query: ', error));
+            if(onSuccessCallback) {
+                onSuccessCallback();
+            }
+        },
+        onError: (error) => {
+            console.error("Error updating user:", error.message);
             toast.error(error.message);
         }
     });

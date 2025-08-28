@@ -5,6 +5,15 @@ export interface PasswordChangeRequest {
     newPassword: string;
 }
 
+export const UserProfileUpdateSchema = z.object({
+    id: z.string().uuid().default(() => crypto.randomUUID()),
+    username: z.string().min(3, 'Username must contains at least 3 characters').optional(),
+    email: z.string().email('Invalid email address').optional(),
+    password: z.string().min(6, 'Password must contains at least 6 characters').optional(),
+});
+
+export type UserProfileUpdate = z.infer<typeof UserProfileUpdateSchema>
+
 export const UserRoleSchema = z.enum(['admin', 'editor', 'viewer']);
 export type UserRole = z.infer<typeof UserRoleSchema>;
 

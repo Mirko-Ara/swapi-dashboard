@@ -1,7 +1,8 @@
-import type { User,  UserCreateUpdate, PasswordChangeRequest  } from '@/types/user';
+import type { User,  UserCreateUpdate, PasswordChangeRequest, UserProfileUpdate  } from '@/types/user';
 
 const API_BASE_URL = 'http://localhost:8080/api/users' as const;
 const API_BASE_URL_AUTH = 'http://localhost:8080/api/auth' as const;
+const API_BASE_URL_PROFILE = 'http://localhost:8080/api/users/profile' as const;
 
 
 async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
@@ -39,6 +40,7 @@ async function authenticatedFetch(url: string, options: RequestInit = {}): Promi
 
     return response;
 }
+
 export const realUserApi = {
     async fetchUsers(): Promise<User[]> {
         const response = await authenticatedFetch(API_BASE_URL);
@@ -71,7 +73,17 @@ export const realUserApi = {
         }
         return await response.json();
     },
-
+    async updateUserProfile(updates: Partial<UserProfileUpdate>): Promise<User> {
+        const response = await authenticatedFetch(API_BASE_URL_PROFILE, {
+            method: 'PUT',
+            body: JSON.stringify(updates),
+        });
+        if(!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Failed to update user profile on backend`);
+        }
+        return await response.json();
+    },
     async updateUser(id: string, updates: Partial<UserCreateUpdate>): Promise<User> {
         const response = await authenticatedFetch(API_BASE_URL + '/' + id, {
             method: 'PUT',
